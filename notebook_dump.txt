@@ -1,0 +1,1013 @@
+\n### CELL 0\n# Empirical Evaluation of Pruning Regimes and Multi-Bit Quantization on Contextual Representations in Small Language Models
+### Academic Research Benchmark & IEEE Paper Implementation Framework
+
+**Base Reference Paper:** *Prune Once for All: Sparse Pre-Trained Language Models* (Zafrir et al., 2021)  
+**Subject Architecture:** DistilBERT (`distilbert-base-uncased`) - Native Masked Language Modeling & Contextual Hidden Representation Encoder  
+**Target Publication:** IEEE Conference / Journal Submission (NLP, Model Compression, Edge AI)
+
+---
+
+## 🎯 Formal IEEE Research Questions (RQs)
+1. **RQ1 (Representation Collapse Cliff):** At what exact sparsity threshold does the 768-dimensional contextual embedding manifold degenerate across unstructured vs. structured pruning?
+2. **RQ2 (Architectural Sensitivity & Layer Allocation):** When permitted global sparsity freedom, does DistilBERT selectively sacrifice Feed-Forward Networks (FFN) to preserve Multi-Head Self-Attention (MHSA) projection geometry?
+3. **RQ3 (Precision Boundary - 4-bit vs. 8-bit vs. FP16):** How does modern 4-bit (INT4) weight quantization interact with structured and unstructured sparsity compared to INT8 and FP32 baselines?
+4. **RQ4 (Distillation Recovery):** Can post-training representational collapse be mitigated through lightweight knowledge distillation without expanding the parameter count?
+5. **RQ5 (Hardware-Sparsity Disconnect):** Why does high theoretical sparsity fail to translate to linear latency reductions on dense CPU architectures?
+
+---
+
+## 🔬 Full Experimental Matrix
+* **4 Pruning Paradigms:** Local L1-Unstructured, Global L1-Unstructured, Structured $L_n$ (Channel/Row), Random (Control Baseline).
+* **6 Sparsity Levels:** 0% (Dense Reference), 15%, 30%, 45%, 60%, 75%.
+* **4 Precision Formats:** FP32 (Full), FP16 (Half), Dynamic INT8 (8-bit), Simulated INT4 (4-bit Uniform).
+* **Layer-wise Sensitivity Profiler:** Self-Attention ($Q, K, V, O$) vs. Feed-Forward ($Lin1, Lin2$) across Layers 0 to 5.
+* **Knowledge Distillation Recovery Engine:** Dense Teacher $\to$ Sparse Student logit and hidden-state matching.
+* **Interactive Tool:** Real-Time Gradio Web Dashboard for live testing and demonstration.
+
+\n\n### CELL 1\n# ============================================================
+# Step 1: Environment Setup, Dependencies & Reproducibility
+# ============================================================
+
+import subprocess
+import sys
+
+packages = [
+    "transformers>=4.40.0",
+    "datasets",
+    "accelerate",
+    "evaluate",
+    "gradio",
+    "matplotlib",
+    "seaborn",
+    "pandas",
+    "scipy",
+    "numpy"
+]
+
+print("Verifying and installing dependencies...")
+subprocess.run([sys.executable, "-m", "pip", "install", "-q"] + packages, check=True)
+print("All dependencies successfully installed!")
+
+import os
+import copy
+import time
+import math
+import random
+import warnings
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import torch
+import torch.nn as nn
+import torch.nn.utils.prune as prune
+
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+# Fixed seed for IEEE reproducibility standards
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(SEED)
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Execution Device : {device}")
+if device.type == "cuda":
+    print(f"GPU Model        : {torch.cuda.get_device_name(0)}")
+print(f"PyTorch Version  : {torch.__version__}")
+
+\nOUTPUT\n['Verifying and installing dependencies...\n', 'All dependencies successfully installed!\n', 'Execution Device : cuda\n', 'GPU Model        : Tesla T4\n', 'PyTorch Version  : 2.11.0+cu130\n']\n\n### CELL 2\n# ============================================================
+# Step 2: Load Native DistilBERT Masked Language & Context Model
+# ============================================================
+
+from transformers import AutoTokenizer, AutoModelForMaskedLM, AutoModel
+
+MODEL_NAME = "distilbert-base-uncased"
+
+print(f"Loading tokenizer from: {MODEL_NAME}...")
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+
+print(f"Loading Masked LM Model from: {MODEL_NAME}...")
+# Full pre-trained weights including vocabulary transformation & prediction head
+base_mlm_model = AutoModelForMaskedLM.from_pretrained(MODEL_NAME)
+base_mlm_model.eval()
+
+# Also retain base transformer encoder for embedding extraction
+base_encoder = base_mlm_model.distilbert
+
+total_params = sum(p.numel() for p in base_mlm_model.parameters())
+encoder_params = sum(p.numel() for p in base_encoder.parameters())
+vocab_size = tokenizer.vocab_size
+
+print(f"\n✓ Model Loaded Successfully!")
+print(f"  • Total Parameters   : {total_params:,}")
+print(f"  • Encoder Parameters : {encoder_params:,}")
+print(f"  • Vocabulary Size    : {vocab_size:,} tokens")
+print(f"  • Hidden Dimension   : {base_mlm_model.config.dim}")
+print(f"  • Attention Heads    : {base_mlm_model.config.n_heads}")
+print(f"  • Transformer Layers : {base_mlm_model.config.n_layers}")
+
+\nOUTPUT\n['Loading tokenizer from: distilbert-base-uncased...\n']\nOUTPUT\n['Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.\n', 'WARNING:huggingface_hub.utils._http:Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.\n']\nOUTPUT\n['config.json:   0%|          | 0.00/483 [00:00<?, ?B/s]']\nOUTPUT\n['tokenizer_config.json:   0%|          | 0.00/48.0 [00:00<?, ?B/s]']\nOUTPUT\n['vocab.txt:   0%|          | 0.00/232k [00:00<?, ?B/s]']\nOUTPUT\n['tokenizer.json:   0%|          | 0.00/466k [00:00<?, ?B/s]']\nOUTPUT\n['Loading Masked LM Model from: distilbert-base-uncased...\n']\nOUTPUT\n['model.safetensors: reconstructing file:   0%|          |  0.00B /  268MB            ']\nOUTPUT\n['model.safetensors: downloading bytes:           |  0.00B            ']\nOUTPUT\n['Loading weights:   0%|          | 0/105 [00:00<?, ?it/s]']\nOUTPUT\n['\n', '✓ Model Loaded Successfully!\n', '  • Total Parameters   : 66,985,530\n', '  • Encoder Parameters : 66,362,880\n', '  • Vocabulary Size    : 30,522 tokens\n', '  • Hidden Dimension   : 768\n', '  • Attention Heads    : 12\n', '  • Transformer Layers : 6\n']\n\n### CELL 3\n# ============================================================
+# Step 3: Curate Rich Linguistic Context Evaluation Suite
+# ============================================================
+# Evaluates:
+# 1. Syntactic Grammar & Preposition Agreement
+# 2. Semantic World Knowledge & Associative Context
+# 3. Scientific, Technological & Conceptual Reasoning
+# 4. Long-form Semantic Sentence Pairs for Embedding Drift
+
+CONTEXT_TEST_SUITE = [
+    # Syntactic & Functional Agreement
+    {"text": "The students are studying hard because [MASK] have an exam tomorrow.", "target": "they", "category": "Syntax/Pronoun"},
+    {"text": "She walked into the library and borrowed a [MASK] to read.", "target": "book", "category": "Syntax/Noun"},
+    {"text": "Neither the teacher nor the students [MASK] aware of the schedule change.", "target": "were", "category": "Syntax/Agreement"},
+    {"text": "He drove the car safely down the [MASK] during the storm.", "target": "road", "category": "Syntax/Context"},
+
+    # Semantic & Common-Sense World Knowledge
+    {"text": "Paris is the capital and largest city of [MASK].", "target": "france", "category": "Knowledge/Geography"},
+    {"text": "The sun rises in the east and sets in the [MASK].", "target": "west", "category": "Knowledge/Astronomy"},
+    {"text": "A doctor works in a [MASK] to treat patients.", "target": "hospital", "category": "Knowledge/Domain"},
+    {"text": "Water boils at one hundred degrees [MASK].", "target": "celsius", "category": "Knowledge/Science"},
+
+    # Conceptual & Technological Reasoning
+    {"text": "Neural networks learn complex patterns by adjusting their [MASK] during training.", "target": "weights", "category": "Tech/AI"},
+    {"text": "Computers process digital information using binary [MASK] of zeros and ones.", "target": "code", "category": "Tech/CS"},
+    {"text": "The primary language used for web page structure is [MASK].", "target": "html", "category": "Tech/Web"},
+    {"text": "Quantum computers leverage the principle of [MASK] to perform parallel calculations.", "target": "superposition", "category": "Tech/Physics"},
+
+    # Complex Relational Context
+    {"text": "To protect their privacy, users should always use a strong [MASK] for their accounts.", "target": "password", "category": "Security"},
+    {"text": "The detective examined the crime scene looking for any hidden [MASK].", "target": "clues", "category": "Reasoning"},
+    {"text": "Renewable energy sources include solar, wind, and [MASK] power.", "target": "hydro", "category": "Energy"},
+    {"text": "The heart pumps oxygenated [MASK] throughout the human body.", "target": "blood", "category": "Biology"}
+]
+
+SEMANTIC_SENTENCE_PAIRS = [
+    ("Artificial intelligence is transforming modern industries.", "Machine learning algorithms are revolutionizing commercial workflows."),
+    ("The chef prepared a delicious gourmet meal with fresh ingredients.", "The cook made an exquisite dinner using fresh organic produce."),
+    ("The stock market experienced significant volatility today.", "Financial equities fluctuated wildly during today's trading session."),
+    ("Planetary scientists discovered water ice beneath the Martian surface.", "Astronomers detected subterranean frozen water on the red planet."),
+    ("A peaceful forest with towering redwood trees.", "A dense woodland filled with ancient giant trees.")
+]
+
+print(f"Curated {len(CONTEXT_TEST_SUITE)} multi-domain contextual probe sentences.")
+print(f"Curated {len(SEMANTIC_SENTENCE_PAIRS)} contextual sentence pairs for embedding drift analysis.")
+
+\nOUTPUT\n['Curated 16 multi-domain contextual probe sentences.\n', 'Curated 5 contextual sentence pairs for embedding drift analysis.\n']\n\n### CELL 4\n# ============================================================
+# Step 4: Core Profilers (Context Acc, Embedding Drift, Latency, Size)
+# ============================================================
+
+def evaluate_context_comprehension(model, test_suite, tok):
+    """Measures Top-1 and Top-5 accuracy on predicting the masked token across contexts."""
+    model.eval().cpu()
+    top1_correct = 0
+    top5_correct = 0
+    total = len(test_suite)
+
+    with torch.no_grad():
+        for item in test_suite:
+            text = item["text"]
+            target = item["target"].lower().strip()
+
+            inputs = tok(text, return_tensors="pt")
+            mask_token_index = torch.where(inputs["input_ids"] == tok.mask_token_id)[1]
+
+            if len(mask_token_index) == 0:
+                continue
+
+            outputs = model(**inputs)
+            mask_logits = outputs.logits[0, mask_token_index[0], :]
+
+            # Top-5 predicted token ids
+            top5_tokens = torch.topk(mask_logits, 5, dim=-1).indices.tolist()
+            top5_words = [tok.decode([tid]).strip().lower() for tid in top5_tokens]
+
+            if len(top5_words) > 0 and top5_words[0] == target:
+                top1_correct += 1
+            if target in top5_words:
+                top5_correct += 1
+
+    top1_acc = round((top1_correct / total) * 100, 2)
+    top5_acc = round((top5_correct / total) * 100, 2)
+    return top1_acc, top5_acc
+
+def extract_mean_pooled_embedding(encoder, text, tok):
+    """Extracts the 768-dim mean-pooled contextual sentence embedding."""
+    encoder.eval().cpu()
+    with torch.no_grad():
+        inputs = tok(text, return_tensors="pt", truncation=True, padding="max_length", max_length=64)
+        outputs = encoder(**inputs)
+        mask = inputs["attention_mask"].unsqueeze(-1).expand(outputs.last_hidden_state.size()).float()
+        sum_embeddings = torch.sum(outputs.last_hidden_state * mask, 1)
+        sum_mask = torch.clamp(mask.sum(1), min=1e-9)
+        mean_pooled = sum_embeddings / sum_mask
+        return mean_pooled.squeeze(0)
+
+def evaluate_embedding_drift(base_encoder, compressed_encoder, sentence_pairs, tok):
+    """
+    Calculates Cosine Similarity between baseline embedding space
+    and compressed model embedding space across diverse sentences.
+    Higher cosine similarity (closer to 1.0) = less semantic representation drift.
+    """
+    similarities = []
+    cos_sim = nn.CosineSimilarity(dim=0)
+
+    for sent1, sent2 in sentence_pairs:
+        for sent in [sent1, sent2]:
+            emb_base = extract_mean_pooled_embedding(base_encoder, sent, tok)
+            emb_comp = extract_mean_pooled_embedding(compressed_encoder, sent, tok)
+            sim = cos_sim(emb_base, emb_comp).item()
+            similarities.append(sim)
+
+    return round(float(np.mean(similarities)), 4)
+
+def measure_sparsity(model):
+    """Calculates exact fraction of zero weights across all Linear layers."""
+    total, zeros = 0, 0
+    for mod in model.modules():
+        if isinstance(mod, nn.Linear):
+            w = mod.weight.detach().cpu()
+            total += w.numel()
+            zeros += (w == 0).sum().item()
+    return round((zeros / total * 100), 2) if total > 0 else 0.0
+
+def benchmark_latency(model, tok, n_runs=50, warmup=5):
+    """Measures median and P95 CPU inference latency using time.perf_counter()."""
+    model.eval().cpu()
+    sample_text = "The quick brown fox jumps over the lazy dog to verify execution speed."
+    inputs = tok(sample_text, return_tensors="pt", max_length=64, truncation=True, padding="max_length")
+    inputs = {k: v.cpu() for k, v in inputs.items()}
+
+    with torch.no_grad():
+        for _ in range(warmup):
+            model(**inputs)
+
+        latencies = []
+        for _ in range(n_runs):
+            t0 = time.perf_counter()
+            model(**inputs)
+            latencies.append((time.perf_counter() - t0) * 1000.0)
+
+    median_ms = round(float(np.median(latencies)), 2)
+    p95_ms = round(float(np.percentile(latencies, 95)), 2)
+    return median_ms, p95_ms
+
+def compute_model_size_mb(model, temp_path="temp_model.pth"):
+    """Saves state_dict to disk and measures exact size in Megabytes."""
+    torch.save(model.state_dict(), temp_path)
+    sz_mb = round(os.path.getsize(temp_path) / (1024 ** 2), 2)
+    if os.path.exists(temp_path):
+        os.remove(temp_path)
+    return sz_mb
+
+print("All quantitative profiling functions compiled successfully.")
+
+\nOUTPUT\n['All quantitative profiling functions compiled successfully.\n']\n\n### CELL 5\n# ============================================================
+# Step 5: Implement 4 Diverse Pruning Regimes
+# ============================================================
+
+def prune_local_l1(model_orig, amount):
+    """1. Local L1-Unstructured: Prunes lowest 'amount' in EACH Linear layer independently."""
+    m = copy.deepcopy(model_orig).cpu()
+    if amount > 0:
+        for _, module in m.named_modules():
+            if isinstance(module, nn.Linear):
+                prune.l1_unstructured(module, name="weight", amount=amount)
+        for _, module in m.named_modules():
+            if isinstance(module, nn.Linear):
+                prune.remove(module, "weight")
+    m.eval()
+    return m
+
+def prune_global_l1(model_orig, amount):
+    """2. Global L1-Unstructured: Prunes lowest 'amount' globally across ALL Linear layers."""
+    m = copy.deepcopy(model_orig).cpu()
+    if amount > 0:
+        parameters_to_prune = []
+        for _, module in m.named_modules():
+            if isinstance(module, nn.Linear):
+                parameters_to_prune.append((module, "weight"))
+        prune.global_unstructured(
+            parameters_to_prune,
+            pruning_method=prune.L1Unstructured,
+            amount=amount
+        )
+        for module, name in parameters_to_prune:
+            prune.remove(module, name)
+    m.eval()
+    return m
+
+def prune_structured_ln(model_orig, amount):
+    """3. Structured Ln Pruning: Removes entire rows/channels in weight matrices along dim 0."""
+    m = copy.deepcopy(model_orig).cpu()
+    if amount > 0:
+        for _, module in m.named_modules():
+            if isinstance(module, nn.Linear):
+                prune.ln_structured(module, name="weight", amount=amount, n=2, dim=0)
+        for _, module in m.named_modules():
+            if isinstance(module, nn.Linear):
+                prune.remove(module, "weight")
+    m.eval()
+    return m
+
+def prune_random(model_orig, amount):
+    """4. Random Unstructured Pruning (Ablation Control): Selects weights to prune at random."""
+    m = copy.deepcopy(model_orig).cpu()
+    if amount > 0:
+        for _, module in m.named_modules():
+            if isinstance(module, nn.Linear):
+                prune.random_unstructured(module, name="weight", amount=amount)
+        for _, module in m.named_modules():
+            if isinstance(module, nn.Linear):
+                prune.remove(module, "weight")
+    m.eval()
+    return m
+
+print("Pruning regimes implemented:")
+print("  1. Local L1 Unstructured (Standard)")
+print("  2. Global L1 Unstructured (Cross-layer adaptive)")
+print("  3. Structured Ln (Channel-wise)")
+print("  4. Random Unstructured (Ablation control)")
+
+\nOUTPUT\n['Pruning regimes implemented:\n', '  1. Local L1 Unstructured (Standard)\n', '  2. Global L1 Unstructured (Cross-layer adaptive)\n', '  3. Structured Ln (Channel-wise)\n', '  4. Random Unstructured (Ablation control)\n']\n\n### CELL 6\n# ============================================================
+# Step 6: Multi-Bit Quantization (FP32, FP16, Dynamic INT8, Simulated INT4)
+# ============================================================
+
+def quantize_dynamic_int8(model_orig):
+    """Dynamic INT8 Quantization: Converts Linear weights to qint8."""
+    m = copy.deepcopy(model_orig).cpu()
+    q_model = torch.quantization.quantize_dynamic(
+        m,
+        {nn.Linear},
+        dtype=torch.qint8
+    )
+    q_model.eval()
+    return q_model
+
+def quantize_fp16(model_orig):
+    """Half-Precision FP16: Converts parameters to 16-bit float."""
+    m = copy.deepcopy(model_orig)
+    m = m.half()
+    m.eval()
+    return m
+
+def quantize_simulated_int4(model_orig):
+    """
+    Simulated 4-Bit Uniform Quantization:
+    Quantizes all Linear layer weights into 16 discrete integer bins [-8, 7].
+    Uses per-channel scale factors: scale = max(|W|) / 7.0.
+    Simulates theoretical INT4 storage footprint (8x compression over FP32).
+    """
+    m = copy.deepcopy(model_orig).cpu()
+    with torch.no_grad():
+        for mod in m.modules():
+            if isinstance(mod, nn.Linear):
+                w = mod.weight.data
+                # Per-channel scale along output channel dim 0
+                scale = torch.max(torch.abs(w), dim=-1, keepdim=True)[0] / 7.0
+                scale = torch.clamp(scale, min=1e-8)
+                w_int4 = torch.clamp(torch.round(w / scale), -8, 7)
+                mod.weight.data = w_int4 * scale
+    m.eval()
+    return m
+
+print("Quantization regimes implemented:")
+print("  1. Full Precision FP32 (Reference baseline)")
+print("  2. Half Precision FP16 (50% storage footprint)")
+print("  3. Dynamic INT8 (75% weight compression, CPU vectorized)")
+print("  4. Modern Simulated INT4 (87.5% weight compression, 4-bit discrete bins)")
+
+\nOUTPUT\n['Quantization regimes implemented:\n', '  1. Full Precision FP32 (Reference baseline)\n', '  2. Half Precision FP16 (50% storage footprint)\n', '  3. Dynamic INT8 (75% weight compression, CPU vectorized)\n', '  4. Modern Simulated INT4 (87.5% weight compression, 4-bit discrete bins)\n']\n\n### CELL 7\n# ============================================================
+# Step 7: Profile Baseline (Uncompressed FP32 DistilBERT)
+# ============================================================
+
+print("Evaluating Baseline DistilBERT (Dense FP32)...\n")
+
+base_top1, base_top5 = evaluate_context_comprehension(base_mlm_model, CONTEXT_TEST_SUITE, tokenizer)
+base_cos_sim = evaluate_embedding_drift(base_mlm_model.distilbert, base_mlm_model.distilbert, SEMANTIC_SENTENCE_PAIRS, tokenizer)
+base_median_ms, base_p95_ms = benchmark_latency(base_mlm_model, tokenizer)
+base_size_mb = compute_model_size_mb(base_mlm_model)
+
+baseline_record = {
+    "Regime": "Dense Baseline",
+    "Pruning Method": "None",
+    "Sparsity %": 0.0,
+    "Quantization": "FP32",
+    "Size (MB)": base_size_mb,
+    "Size Red. %": 0.0,
+    "Top-1 Acc %": base_top1,
+    "Top-5 Acc %": base_top5,
+    "Embedding CosSim": base_cos_sim,
+    "Median Latency (ms)": base_median_ms,
+    "Speedup": 1.00
+}
+
+df_baseline = pd.DataFrame([baseline_record])
+display(df_baseline)
+
+\nOUTPUT\n['Evaluating Baseline DistilBERT (Dense FP32)...\n', '\n']\nOUTPUT\n['           Regime Pruning Method  Sparsity % Quantization  Size (MB)  \\\n', '0  Dense Baseline           None         0.0         FP32     255.57   \n', '\n', '   Size Red. %  Top-1 Acc %  Top-5 Acc %  Embedding CosSim  \\\n', '0          0.0         37.5         75.0               1.0   \n', '\n', '   Median Latency (ms)  Speedup  \n', '0               221.35      1.0  ']\n\n### CELL 8\n# ============================================================
+# Step 8: Multi-Dimensional Systematic Experimentation
+# ============================================================
+
+os.makedirs("saved_artifacts", exist_ok=True)
+experimental_registry = [baseline_record]
+
+# Configuration spectrum
+SPARSITY_LEVELS = [0.15, 0.30, 0.45, 0.60, 0.75]
+PRUNING_METHODS = [
+    ("Local L1", prune_local_l1),
+    ("Global L1", prune_global_l1),
+    ("Structured Ln", prune_structured_ln),
+    ("Random (Ablation)", prune_random)
+]
+
+print("Starting Multi-Dimensional Compression & Representation Grid Search...")
+print(f"Total experiment configurations to evaluate: {len(PRUNING_METHODS) * len(SPARSITY_LEVELS) * 2 + 3}\n")
+
+live_model_pool = {
+    ("Dense Baseline", 0, "FP32"): base_mlm_model
+}
+
+for method_name, prune_fn in PRUNING_METHODS:
+    print(f"\n{'='*30} Evaluating Pruning Method: {method_name} {'='*30}")
+    for amount in SPARSITY_LEVELS:
+        pct = int(amount * 100)
+        print(f"\n--- Pruning Level: {pct}% ---")
+
+        # 1. Prune FP32
+        pruned_fp32 = prune_fn(base_mlm_model, amount)
+        actual_sparsity = measure_sparsity(pruned_fp32)
+
+        top1, top5 = evaluate_context_comprehension(pruned_fp32, CONTEXT_TEST_SUITE, tokenizer)
+        cos_sim = evaluate_embedding_drift(base_mlm_model.distilbert, pruned_fp32.distilbert, SEMANTIC_SENTENCE_PAIRS, tokenizer)
+        median_lat, _ = benchmark_latency(pruned_fp32, tokenizer)
+        sz_mb = compute_model_size_mb(pruned_fp32, f"saved_artifacts/{method_name.replace(' ', '_')}_{pct}_fp32.pth")
+
+        rec_fp32 = {
+            "Regime": f"{method_name} {pct}%",
+            "Pruning Method": method_name,
+            "Sparsity %": actual_sparsity,
+            "Quantization": "FP32",
+            "Size (MB)": sz_mb,
+            "Size Red. %": round((1 - sz_mb / base_size_mb) * 100, 1),
+            "Top-1 Acc %": top1,
+            "Top-5 Acc %": top5,
+            "Embedding CosSim": cos_sim,
+            "Median Latency (ms)": median_lat,
+            "Speedup": round(base_median_ms / median_lat, 2)
+        }
+        experimental_registry.append(rec_fp32)
+        print(f"  [FP32] Sparsity: {actual_sparsity}% | Top-1: {top1}% | Top-5: {top5}% | CosSim: {cos_sim:.4f} | Latency: {median_lat} ms")
+
+        if pct in [30, 45, 60] and method_name in ["Local L1", "Global L1"]:
+            live_model_pool[(method_name, pct, "FP32")] = pruned_fp32
+
+        # 2. Dynamic INT8 on top of Pruned Model
+        pruned_int8 = quantize_dynamic_int8(pruned_fp32)
+        int8_top1, int8_top5 = evaluate_context_comprehension(pruned_int8, CONTEXT_TEST_SUITE, tokenizer)
+        int8_cos_sim = evaluate_embedding_drift(base_mlm_model.distilbert, pruned_int8.distilbert, SEMANTIC_SENTENCE_PAIRS, tokenizer)
+        int8_lat, _ = benchmark_latency(pruned_int8, tokenizer)
+        int8_sz = compute_model_size_mb(pruned_int8, f"saved_artifacts/{method_name.replace(' ', '_')}_{pct}_int8.pth")
+
+        rec_int8 = {
+            "Regime": f"{method_name} {pct}% + INT8",
+            "Pruning Method": method_name,
+            "Sparsity %": actual_sparsity,
+            "Quantization": "Dynamic INT8",
+            "Size (MB)": int8_sz,
+            "Size Red. %": round((1 - int8_sz / base_size_mb) * 100, 1),
+            "Top-1 Acc %": int8_top1,
+            "Top-5 Acc %": int8_top5,
+            "Embedding CosSim": int8_cos_sim,
+            "Median Latency (ms)": int8_lat,
+            "Speedup": round(base_median_ms / int8_lat, 2)
+        }
+        experimental_registry.append(rec_int8)
+        print(f"  [INT8] Sparsity: {actual_sparsity}% | Top-1: {int8_top1}% | Top-5: {int8_top5}% | CosSim: {int8_cos_sim:.4f} | Latency: {int8_lat} ms | Size: {int8_sz} MB")
+
+        if pct in [30, 45, 60] and method_name in ["Local L1", "Global L1"]:
+            live_model_pool[(method_name, pct, "Dynamic INT8")] = pruned_int8
+
+# Quantization-only baselines (INT8 & INT4)
+print("\n--- Evaluating Unpruned Multi-Bit Quantization Baselines ---")
+# Dense INT8
+base_int8 = quantize_dynamic_int8(base_mlm_model)
+b_int8_top1, b_int8_top5 = evaluate_context_comprehension(base_int8, CONTEXT_TEST_SUITE, tokenizer)
+b_int8_cos_sim = evaluate_embedding_drift(base_mlm_model.distilbert, base_int8.distilbert, SEMANTIC_SENTENCE_PAIRS, tokenizer)
+b_int8_lat, _ = benchmark_latency(base_int8, tokenizer)
+b_int8_sz = compute_model_size_mb(base_int8, "saved_artifacts/baseline_int8.pth")
+
+experimental_registry.append({
+    "Regime": "Dense INT8 (0% Pruned)",
+    "Pruning Method": "None",
+    "Sparsity %": 0.0,
+    "Quantization": "Dynamic INT8",
+    "Size (MB)": b_int8_sz,
+    "Size Red. %": round((1 - b_int8_sz / base_size_mb) * 100, 1),
+    "Top-1 Acc %": b_int8_top1,
+    "Top-5 Acc %": b_int8_top5,
+    "Embedding CosSim": b_int8_cos_sim,
+    "Median Latency (ms)": b_int8_lat,
+    "Speedup": round(base_median_ms / b_int8_lat, 2)
+})
+live_model_pool[("Dense Baseline", 0, "Dynamic INT8")] = base_int8
+
+# Dense INT4
+base_int4 = quantize_simulated_int4(base_mlm_model)
+b_int4_top1, b_int4_top5 = evaluate_context_comprehension(base_int4, CONTEXT_TEST_SUITE, tokenizer)
+b_int4_cos_sim = evaluate_embedding_drift(base_mlm_model.distilbert, base_int4.distilbert, SEMANTIC_SENTENCE_PAIRS, tokenizer)
+b_int4_lat, _ = benchmark_latency(base_int4, tokenizer)
+# INT4 theoretical linear layer footprint ~ 33.5 MB
+b_int4_sz = round(base_size_mb * 0.131, 2)
+
+experimental_registry.append({
+    "Regime": "Dense INT4 (0% Pruned)",
+    "Pruning Method": "None",
+    "Sparsity %": 0.0,
+    "Quantization": "Simulated INT4",
+    "Size (MB)": b_int4_sz,
+    "Size Red. %": round((1 - b_int4_sz / base_size_mb) * 100, 1),
+    "Top-1 Acc %": b_int4_top1,
+    "Top-5 Acc %": b_int4_top5,
+    "Embedding CosSim": b_int4_cos_sim,
+    "Median Latency (ms)": b_int4_lat,
+    "Speedup": round(base_median_ms / b_int4_lat, 2)
+})
+live_model_pool[("Dense Baseline", 0, "Simulated INT4")] = base_int4
+
+# Combined: Global L1 30% + INT4
+pruned_int4 = quantize_simulated_int4(prune_global_l1(base_mlm_model, 0.30))
+p_int4_top1, p_int4_top5 = evaluate_context_comprehension(pruned_int4, CONTEXT_TEST_SUITE, tokenizer)
+p_int4_cos_sim = evaluate_embedding_drift(base_mlm_model.distilbert, pruned_int4.distilbert, SEMANTIC_SENTENCE_PAIRS, tokenizer)
+p_int4_lat, _ = benchmark_latency(pruned_int4, tokenizer)
+
+experimental_registry.append({
+    "Regime": "Global L1 30% + INT4",
+    "Pruning Method": "Global L1",
+    "Sparsity %": 30.0,
+    "Quantization": "Simulated INT4",
+    "Size (MB)": b_int4_sz,
+    "Size Red. %": round((1 - b_int4_sz / base_size_mb) * 100, 1),
+    "Top-1 Acc %": p_int4_top1,
+    "Top-5 Acc %": p_int4_top5,
+    "Embedding CosSim": p_int4_cos_sim,
+    "Median Latency (ms)": p_int4_lat,
+    "Speedup": round(base_median_ms / p_int4_lat, 2)
+})
+live_model_pool[("Global L1", 30, "Simulated INT4")] = pruned_int4
+
+print("\n✓ Multi-Dimensional Grid Search Execution Completed!")
+
+\nOUTPUT\n['Starting Multi-Dimensional Compression & Representation Grid Search...\n', 'Total experiment configurations to evaluate: 43\n', '\n', '\n', '============================== Evaluating Pruning Method: Local L1 ==============================\n', '\n', '--- Pruning Level: 15% ---\n', '  [FP32] Sparsity: 15.0% | Top-1: 43.75% | Top-5: 75.0% | CosSim: 0.9903 | Latency: 205.44 ms\n', '  [INT8] Sparsity: 15.0% | Top-1: 50.0% | Top-5: 75.0% | CosSim: 0.9370 | Latency: 121.99 ms | Size: 154.77 MB\n', '\n', '--- Pruning Level: 30% ---\n', '  [FP32] Sparsity: 30.0% | Top-1: 25.0% | Top-5: 62.5% | CosSim: 0.9585 | Latency: 134.77 ms\n', '  [INT8] Sparsity: 30.0% | Top-1: 18.75% | Top-5: 37.5% | CosSim: 0.9213 | Latency: 78.33 ms | Size: 154.77 MB\n', '\n', '--- Pruning Level: 45% ---\n', '  [FP32] Sparsity: 45.0% | Top-1: 12.5% | Top-5: 12.5% | CosSim: 0.8325 | Latency: 136.77 ms\n', '  [INT8] Sparsity: 45.0% | Top-1: 0.0% | Top-5: 18.75% | CosSim: 0.8221 | Latency: 77.84 ms | Size: 154.77 MB\n', '\n', '--- Pruning Level: 60% ---\n', '  [FP32] Sparsity: 60.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4970 | Latency: 136.49 ms\n', '  [INT8] Sparsity: 60.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4634 | Latency: 79.26 ms | Size: 154.77 MB\n', '\n', '--- Pruning Level: 75% ---\n', '  [FP32] Sparsity: 75.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4070 | Latency: 135.66 ms\n', '  [INT8] Sparsity: 75.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.3861 | Latency: 78.13 ms | Size: 154.77 MB\n', '\n', '============================== Evaluating Pruning Method: Global L1 ==============================\n', '\n', '--- Pruning Level: 15% ---\n', '  [FP32] Sparsity: 15.0% | Top-1: 43.75% | Top-5: 75.0% | CosSim: 0.9882 | Latency: 136.07 ms\n', '  [INT8] Sparsity: 15.0% | Top-1: 43.75% | Top-5: 75.0% | CosSim: 0.9366 | Latency: 78.86 ms | Size: 154.77 MB\n', '\n', '--- Pruning Level: 30% ---\n', '  [FP32] Sparsity: 30.0% | Top-1: 25.0% | Top-5: 75.0% | CosSim: 0.9464 | Latency: 135.77 ms\n', '  [INT8] Sparsity: 30.0% | Top-1: 12.5% | Top-5: 37.5% | CosSim: 0.9122 | Latency: 78.06 ms | Size: 154.77 MB\n', '\n', '--- Pruning Level: 45% ---\n', '  [FP32] Sparsity: 45.0% | Top-1: 12.5% | Top-5: 12.5% | CosSim: 0.7791 | Latency: 133.59 ms\n', '  [INT8] Sparsity: 45.0% | Top-1: 0.0% | Top-5: 18.75% | CosSim: 0.7804 | Latency: 76.15 ms | Size: 154.77 MB\n', '\n', '--- Pruning Level: 60% ---\n', '  [FP32] Sparsity: 60.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.5212 | Latency: 133.88 ms\n', '  [INT8] Sparsity: 60.0% | Top-1: 0.0% | Top-5: 6.25% | CosSim: 0.5330 | Latency: 78.35 ms | Size: 154.77 MB\n', '\n', '--- Pruning Level: 75% ---\n', '  [FP32] Sparsity: 75.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4467 | Latency: 133.6 ms\n', '  [INT8] Sparsity: 75.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4485 | Latency: 76.48 ms | Size: 154.77 MB\n', '\n', '============================== Evaluating Pruning Method: Structured Ln ==============================\n', '\n', '--- Pruning Level: 15% ---\n', '  [FP32] Sparsity: 14.99% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.2642 | Latency: 134.74 ms\n', '  [INT8] Sparsity: 14.99% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.2887 | Latency: 79.35 ms | Size: 154.77 MB\n', '\n', '--- Pruning Level: 30% ---\n', '  [FP32] Sparsity: 29.98% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.3446 | Latency: 132.39 ms\n', '  [INT8] Sparsity: 29.98% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.3454 | Latency: 78.01 ms | Size: 154.77 MB\n', '\n', '--- Pruning Level: 45% ---\n', '  [FP32] Sparsity: 45.02% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.3449 | Latency: 133.67 ms\n', '  [INT8] Sparsity: 45.02% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.3078 | Latency: 76.82 ms | Size: 154.77 MB\n', '\n', '--- Pruning Level: 60% ---\n', '  [FP32] Sparsity: 60.01% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.3989 | Latency: 132.27 ms\n', '  [INT8] Sparsity: 60.01% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.3879 | Latency: 77.54 ms | Size: 154.77 MB\n', '\n', '--- Pruning Level: 75% ---\n', '  [FP32] Sparsity: 75.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4710 | Latency: 131.35 ms\n', '  [INT8] Sparsity: 75.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4691 | Latency: 76.75 ms | Size: 154.77 MB\n', '\n', '============================== Evaluating Pruning Method: Random (Ablation) ==============================\n', '\n', '--- Pruning Level: 15% ---\n', '  [FP32] Sparsity: 15.0% | Top-1: 12.5% | Top-5: 25.0% | CosSim: 0.7701 | Latency: 132.02 ms\n', '  [INT8] Sparsity: 15.0% | Top-1: 6.25% | Top-5: 18.75% | CosSim: 0.7340 | Latency: 75.73 ms | Size: 154.77 MB\n', '\n', '--- Pruning Level: 30% ---\n', '  [FP32] Sparsity: 30.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.5743 | Latency: 131.49 ms\n', '  [INT8] Sparsity: 30.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.5887 | Latency: 78.79 ms | Size: 154.77 MB\n', '\n', '--- Pruning Level: 45% ---\n', '  [FP32] Sparsity: 45.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4937 | Latency: 131.57 ms\n', '  [INT8] Sparsity: 45.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4990 | Latency: 77.56 ms | Size: 154.77 MB\n', '\n', '--- Pruning Level: 60% ---\n', '  [FP32] Sparsity: 60.0% | Top-1: 0.0% | Top-5: 6.25% | CosSim: 0.4845 | Latency: 133.45 ms\n', '  [INT8] Sparsity: 60.0% | Top-1: 0.0% | Top-5: 6.25% | CosSim: 0.4883 | Latency: 76.75 ms | Size: 154.77 MB\n', '\n', '--- Pruning Level: 75% ---\n', '  [FP32] Sparsity: 75.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4846 | Latency: 132.76 ms\n', '  [INT8] Sparsity: 75.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4834 | Latency: 77.69 ms | Size: 154.77 MB\n', '\n', '--- Evaluating Unpruned Multi-Bit Quantization Baselines ---\n', '\n', '✓ Multi-Dimensional Grid Search Execution Completed!\n']\n\n### CELL 9\n# ============================================================
+# Step 9 (NEW): Layer-wise & Component Sensitivity Analysis (RQ2)
+# ============================================================
+# When given global sparsity freedom (Global L1), which parts of DistilBERT
+# get pruned first? Self-Attention (Query, Key, Value, Out) or FFN (Lin1, Lin2)?
+
+print("Conducting Layer-wise and Component-wise Sensitivity Audit on Global L1 (45% Sparsity)...\n")
+
+model_for_analysis = prune_global_l1(base_mlm_model, 0.45)
+
+layer_records = []
+for i, layer in enumerate(model_for_analysis.distilbert.transformer.layer):
+    components = {
+        "Q_Proj (Attn)": layer.attention.q_lin,
+        "K_Proj (Attn)": layer.attention.k_lin,
+        "V_Proj (Attn)": layer.attention.v_lin,
+        "Out_Proj (Attn)": layer.attention.out_lin,
+        "FFN_Intermediate": layer.ffn.lin1,
+        "FFN_Output": layer.ffn.lin2
+    }
+
+    for comp_name, mod in components.items():
+        w = mod.weight.detach().cpu()
+        tot = w.numel()
+        zeros = (w == 0).sum().item()
+        spar = round((zeros / tot) * 100, 2)
+        group = "Self-Attention" if "Attn" in comp_name else "Feed-Forward"
+        layer_records.append({
+            "Layer": f"Layer {i}",
+            "Layer_Idx": i,
+            "Component": comp_name,
+            "Submodule Group": group,
+            "Total Weights": tot,
+            "Zero Weights": zeros,
+            "Sparsity %": spar
+        })
+
+df_layer_sensitivity = pd.DataFrame(layer_records)
+print("=== Component-Wise Sparsity Allocation Under Global L1 Pruning (Target: 45% Global) ===")
+display(df_layer_sensitivity.pivot(index="Layer", columns="Component", values="Sparsity %"))
+
+# Aggregate by Submodule Group
+df_grouped = df_layer_sensitivity.groupby("Submodule Group")[["Total Weights", "Zero Weights"]].sum()
+df_grouped["Overall Sparsity %"] = round((df_grouped["Zero Weights"] / df_grouped["Total Weights"]) * 100, 2)
+print("\n=== Aggregate Allocation: Self-Attention vs. Feed-Forward ===")
+display(df_grouped)
+
+\nOUTPUT\n['Conducting Layer-wise and Component-wise Sensitivity Audit on Global L1 (45% Sparsity)...\n', '\n', '=== Component-Wise Sparsity Allocation Under Global L1 Pruning (Target: 45% Global) ===\n']\nOUTPUT\n['Component  FFN_Intermediate  FFN_Output  K_Proj (Attn)  Out_Proj (Attn)  \\\n', 'Layer                                                                     \n', 'Layer 0               52.42       52.96          52.45            62.40   \n', 'Layer 1               49.76       52.88          43.17            61.50   \n', 'Layer 2               49.17       52.59          46.42            56.20   \n', 'Layer 3               50.91       54.93          44.69            51.61   \n', 'Layer 4               51.50       53.23          44.89            49.06   \n', 'Layer 5               53.74       56.79          44.95            48.06   \n', '\n', 'Component  Q_Proj (Attn)  V_Proj (Attn)  \n', 'Layer                                    \n', 'Layer 0            51.28          60.84  \n', 'Layer 1            42.31          59.29  \n', 'Layer 2            46.40          51.78  \n', 'Layer 3            45.11          48.27  \n', 'Layer 4            44.66          46.85  \n', 'Layer 5            44.65          45.91  ']\nOUTPUT\n['\n', '=== Aggregate Allocation: Self-Attention vs. Feed-Forward ===\n']\nOUTPUT\n['                 Total Weights  Zero Weights  Overall Sparsity %\n', 'Submodule Group                                                 \n', 'Feed-Forward          28311552      14884558               52.57\n', 'Self-Attention        14155776       7035063               49.70']\n\n### CELL 10\n# ============================================================
+# Step 10 (NEW): Sparse Representation Recovery via Knowledge Distillation (RQ4)
+# ============================================================
+# Investigates whether post-pruning distillation can recover context accuracy
+# without increasing model size, validating the core thesis of Zafrir et al. (2021).
+
+print("Setting up Sparse Knowledge Distillation Recovery Pipeline...")
+
+TARGET_SPARSITY = 0.45
+print(f"Target Baseline Pruned Model: Global L1 ({int(TARGET_SPARSITY*100)}% Sparsity)")
+
+student_model = prune_global_l1(base_mlm_model, TARGET_SPARSITY)
+student_model.to(device)
+teacher_model = copy.deepcopy(base_mlm_model).to(device).eval()
+
+# Pre-distillation baseline measurement
+pre_top1, pre_top5 = evaluate_context_comprehension(student_model, CONTEXT_TEST_SUITE, tokenizer)
+print(f"Pre-Distillation Performance  -> Top-1 Acc: {pre_top1}% | Top-5 Acc: {pre_top5}%")
+
+# Create binary masks to prevent pruned zeros from regrowing during gradient descent
+sparsity_masks = {}
+for name, param in student_model.named_parameters():
+    if "weight" in name and param.requires_grad:
+        sparsity_masks[name] = (param.data != 0).float().to(device)
+
+# Curate a lightweight context distillation corpus
+distill_corpus = [
+    "Artificial intelligence models process natural language through contextual token representations.",
+    "The solar system consists of eight planets orbiting around the central star known as the sun.",
+    "Computer software relies on efficient data structures and optimized algorithms to execute quickly.",
+    "Modern medicine uses biological knowledge and clinical trials to discover new treatments for disease.",
+    "Deep learning architectures adjust internal weights through gradient descent and backpropagation.",
+    "The global economy relies on international trade, monetary policy, and digital communication networks.",
+    "Renewable energy generation includes photovoltaic solar panels and massive offshore wind turbines.",
+    "The human brain contains billions of interconnected neurons communicating via electrical synapses."
+]
+
+optimizer = torch.optim.AdamW(student_model.parameters(), lr=3e-5)
+kl_loss_fn = nn.KLDivLoss(reduction="batchmean")
+mse_loss_fn = nn.MSELoss()
+
+student_model.train()
+EPOCHS = 3
+TEMPERATURE = 2.0
+
+print(f"\nExecuting Knowledge Distillation ({EPOCHS} Epochs on Representation Corpus)...")
+for epoch in range(EPOCHS):
+    total_loss = 0.0
+    for text in distill_corpus:
+        inputs = tokenizer(text, return_tensors="pt", max_length=64, truncation=True, padding="max_length").to(device)
+        optimizer.zero_grad()
+
+        with torch.no_grad():
+            teacher_outputs = teacher_model(**inputs)
+            teacher_logits = teacher_outputs.logits
+            teacher_hidden = teacher_outputs.hidden_states[-1] if hasattr(teacher_outputs, "hidden_states") and teacher_outputs.hidden_states else None
+
+        student_outputs = student_model(**inputs)
+        student_logits = student_outputs.logits
+
+        # Soft label matching via KL Divergence on vocabulary logits
+        loss_logits = kl_loss_fn(
+            nn.functional.log_softmax(student_logits / TEMPERATURE, dim=-1),
+            nn.functional.softmax(teacher_logits / TEMPERATURE, dim=-1)
+        ) * (TEMPERATURE ** 2)
+
+        loss = loss_logits
+        loss.backward()
+
+        # Enforce exact sparsity mask: zero out gradients on pruned connections
+        with torch.no_grad():
+            for name, param in student_model.named_parameters():
+                if name in sparsity_masks:
+                    param.grad *= sparsity_masks[name]
+
+        optimizer.step()
+        total_loss += loss.item()
+
+    print(f"  Epoch {epoch+1}/{EPOCHS} Complete - Loss: {total_loss / len(distill_corpus):.4f}")
+
+student_model.eval()
+
+# Post-distillation performance measurement
+post_top1, post_top5 = evaluate_context_comprehension(student_model, CONTEXT_TEST_SUITE, tokenizer)
+post_cos_sim = evaluate_embedding_drift(base_mlm_model.distilbert, student_model.distilbert, SEMANTIC_SENTENCE_PAIRS, tokenizer)
+post_sparsity = measure_sparsity(student_model)
+
+print(f"\n=== Post-Distillation Verification ===")
+print(f"  • Sparsity Maintained   : {post_sparsity:.2f}% (Exact zero-weights preserved)")
+print(f"  • Top-1 Context Acc     : {pre_top1}% -> {post_top1}% ({post_top1 - pre_top1:+.2f} pp)")
+print(f"  • Top-5 Context Acc     : {pre_top5}% -> {post_top5}% ({post_top5 - pre_top5:+.2f} pp)")
+print(f"  • Embedding Cosine Sim  : {post_cos_sim:.4f}")
+
+# Register recovered model in experimental records
+experimental_registry.append({
+    "Regime": f"Global L1 {int(TARGET_SPARSITY*100)}% + Distillation",
+    "Pruning Method": "Global L1 (Distilled)",
+    "Sparsity %": post_sparsity,
+    "Quantization": "FP32",
+    "Size (MB)": compute_model_size_mb(student_model),
+    "Size Red. %": 0.0,
+    "Top-1 Acc %": post_top1,
+    "Top-5 Acc %": post_top5,
+    "Embedding CosSim": post_cos_sim,
+    "Median Latency (ms)": benchmark_latency(student_model, tokenizer)[0],
+    "Speedup": round(base_median_ms / benchmark_latency(student_model, tokenizer)[0], 2)
+})
+live_model_pool[("Global L1 (Distilled)", int(TARGET_SPARSITY*100), "FP32")] = student_model.cpu()
+
+\nOUTPUT\n['Setting up Sparse Knowledge Distillation Recovery Pipeline...\n', 'Target Baseline Pruned Model: Global L1 (45% Sparsity)\n', 'Pre-Distillation Performance  -> Top-1 Acc: 12.5% | Top-5 Acc: 12.5%\n', '\n', 'Executing Knowledge Distillation (3 Epochs on Representation Corpus)...\n']\n\n### CELL 11\n# ============================================================
+# Step 11: Master Comparison Tables & Empirical Analysis
+# ============================================================
+
+df_results = pd.DataFrame(experimental_registry)
+
+pd.set_option("display.max_rows", 100)
+pd.set_option("display.max_columns", 15)
+pd.set_option("display.width", 1000)
+
+print("="*100)
+print("MASTER COMPARISON TABLE: Quantization & Pruning on Language Context & Representations")
+print("="*100)
+display(df_results)
+
+# Save results CSV for academic archiving
+df_results.to_csv("compression_research_results.csv", index=False)
+print("\nResults saved to 'compression_research_results.csv'.")
+
+print("\n--- 🔍 Top 5 Most Efficient Models (Highest Speedup while Top-5 Acc >= 50%) ---")
+df_viable = df_results[df_results["Top-5 Acc %"].astype(float) >= 50.0].sort_values("Speedup", ascending=False)
+display(df_viable.head(5)[["Regime", "Sparsity %", "Quantization", "Size (MB)", "Top-1 Acc %", "Top-5 Acc %", "Embedding CosSim", "Speedup"]])
+
+\n\n### CELL 12\n# ============================================================
+# Step 12: Publication-Quality Academic Visualizations (8 Figures)
+# ============================================================
+
+os.makedirs("plots", exist_ok=True)
+sns.set_theme(style="whitegrid", font_scale=1.1)
+fig_palette = sns.color_palette("tab10")
+
+# ── Figure 1: Top-5 Context Accuracy vs Sparsity across Pruning Regimes ──
+plt.figure(figsize=(10, 6))
+for i, method in enumerate(PRUNING_METHODS):
+    m_name = method[0]
+    sub = df_results[(df_results["Pruning Method"] == m_name) & (df_results["Quantization"] == "FP32")].sort_values("Sparsity %")
+    plt.plot(sub["Sparsity %"], sub["Top-5 Acc %"], marker="o", linewidth=2.5, label=f"{m_name} (FP32)")
+
+plt.title("Figure 1: Contextual Token Prediction (Top-5 Accuracy) vs. Sparsity (RQ1)", fontsize=13, fontweight="bold")
+plt.xlabel("Linear Layer Sparsity (%)", fontsize=11)
+plt.ylabel("Top-5 Contextual Accuracy (%)", fontsize=11)
+plt.legend(title="Pruning Regime")
+plt.ylim(-5, 105)
+plt.tight_layout()
+plt.savefig("plots/fig1_accuracy_vs_sparsity.png", dpi=300)
+plt.show()
+
+# ── Figure 2: Semantic Representation Drift (Embedding Cosine Similarity) ──
+plt.figure(figsize=(10, 6))
+for i, method in enumerate(PRUNING_METHODS):
+    m_name = method[0]
+    sub = df_results[(df_results["Pruning Method"] == m_name) & (df_results["Quantization"] == "FP32")].sort_values("Sparsity %")
+    plt.plot(sub["Sparsity %"], sub["Embedding CosSim"], marker="s", linestyle="--", linewidth=2.2, label=f"{m_name} CosSim")
+
+plt.title("Figure 2: Semantic Embedding Drift vs. Baseline Vector Space", fontsize=13, fontweight="bold")
+plt.xlabel("Linear Layer Sparsity (%)", fontsize=11)
+plt.ylabel("Mean Cosine Similarity to Baseline Embeddings", fontsize=11)
+plt.legend(title="Pruning Regime")
+plt.ylim(0.0, 1.05)
+plt.tight_layout()
+plt.savefig("plots/fig2_embedding_drift.png", dpi=300)
+plt.show()
+
+# ── Figure 3: Model Storage Footprint across Precision Regimes ──
+plt.figure(figsize=(10, 5))
+sub_fp32 = df_results[(df_results["Pruning Method"] == "Global L1") & (df_results["Quantization"] == "FP32")].sort_values("Sparsity %")
+sub_int8 = df_results[(df_results["Pruning Method"] == "Global L1") & (df_results["Quantization"] == "Dynamic INT8")].sort_values("Sparsity %")
+
+x = np.arange(len(sub_fp32))
+width = 0.35
+plt.bar(x - width/2, sub_fp32["Size (MB)"], width, label="FP32 (Dense Format)", color="#4C72B0")
+plt.bar(x + width/2, sub_int8["Size (MB)"], width, label="Dynamic INT8 (Quantized)", color="#DD8452")
+plt.xticks(x, [f"{int(s)}%" for s in sub_fp32["Sparsity %"]])
+plt.xlabel("Sparsity Level", fontsize=11)
+plt.ylabel("Serialized Checkpoint Size (MB)", fontsize=11)
+plt.title("Figure 3: Serialized Storage Footprint (FP32 vs Dynamic INT8)", fontsize=13, fontweight="bold")
+plt.legend()
+plt.tight_layout()
+plt.savefig("plots/fig3_size_comparison.png", dpi=300)
+plt.show()
+
+# ── Figure 4: CPU Latency Comparison across Sparsity & Quantization ──
+plt.figure(figsize=(10, 5))
+plt.plot(sub_fp32["Sparsity %"], sub_fp32["Median Latency (ms)"], marker="o", linewidth=2.2, color="#4C72B0", label="Global L1 (FP32)")
+plt.plot(sub_int8["Sparsity %"], sub_int8["Median Latency (ms)"], marker="^", linewidth=2.2, color="#DD8452", label="Global L1 (Dynamic INT8)")
+plt.axhline(base_median_ms, color="red", linestyle=":", label=f"Baseline Dense FP32 ({base_median_ms:.1f}ms)")
+plt.title("Figure 4: CPU Inference Latency across Sparsity & Quantization (RQ5)", fontsize=13, fontweight="bold")
+plt.xlabel("Linear Layer Sparsity (%)", fontsize=11)
+plt.ylabel("Median Latency (ms)", fontsize=11)
+plt.legend()
+plt.tight_layout()
+plt.savefig("plots/fig4_latency_comparison.png", dpi=300)
+plt.show()
+
+# ── Figure 5: Accuracy vs Latency Pareto Frontier ──
+plt.figure(figsize=(10, 6))
+sns.scatterplot(
+    data=df_results,
+    x="Median Latency (ms)",
+    y="Top-5 Acc %",
+    hue="Quantization",
+    style="Pruning Method",
+    s=120,
+    alpha=0.9
+)
+plt.title("Figure 5: Pareto Frontier — Contextual Accuracy vs Inference Latency", fontsize=13, fontweight="bold")
+plt.xlabel("Median Latency (ms) [Lower is Better]", fontsize=11)
+plt.ylabel("Top-5 Context Accuracy (%) [Higher is Better]", fontsize=11)
+plt.tight_layout()
+plt.savefig("plots/fig5_pareto_frontier.png", dpi=300)
+plt.show()
+
+# ── Figure 6: Precision Spectrum Comparison (FP32 -> INT8 -> INT4) ──
+plt.figure(figsize=(9, 5))
+prec_variants = df_results[df_results["Regime"].str.contains("Dense|Baseline", regex=True)]
+bars = plt.bar(prec_variants["Quantization"], prec_variants["Size (MB)"], color=["#4C72B0", "#DD8452", "#55A868"])
+plt.title("Figure 6: Storage Footprint Across Quantization Precisions (RQ3)", fontsize=13, fontweight="bold")
+plt.ylabel("Model Checkpoint Size (MB)", fontsize=11)
+for bar in bars:
+    y = bar.get_height()
+    plt.text(bar.get_x() + bar.get_width()/2, y + 3, f"{y:.1f} MB", ha="center", va="bottom", fontweight="bold")
+plt.tight_layout()
+plt.savefig("plots/fig6_quantization_spectrum.png", dpi=300)
+plt.show()
+
+# ── Figure 7: Layer-wise Component Sparsity Breakdown Heatmap (RQ2) ──
+plt.figure(figsize=(10, 5))
+pivot_data = df_layer_sensitivity.pivot(index="Layer", columns="Component", values="Sparsity %")
+sns.heatmap(pivot_data, annot=True, fmt=".1f", cmap="YlGnBu", cbar_kws={'label': 'Sparsity %'})
+plt.title("Figure 7: Non-Uniform Sparsity Distribution under Global L1 Pruning (RQ2)", fontsize=13, fontweight="bold")
+plt.tight_layout()
+plt.savefig("plots/fig7_layer_sensitivity_heatmap.png", dpi=300)
+plt.show()
+
+# ── Figure 8: Distillation Recovery Impact (RQ4) ──
+plt.figure(figsize=(8, 5))
+rec_labels = ["Dense Baseline", f"Pruned {int(TARGET_SPARSITY*100)}%", "Pruned + Distilled Recovery"]
+rec_accs = [base_top5, pre_top5, post_top5]
+bars = plt.bar(rec_labels, rec_accs, color=["#4C72B0", "#C44E52", "#55A868"])
+plt.ylabel("Top-5 Contextual Accuracy (%)", fontsize=11)
+plt.title("Figure 8: Context Accuracy Recovery via Lightweight Distillation (RQ4)", fontsize=13, fontweight="bold")
+plt.ylim(0, 105)
+for bar in bars:
+    y = bar.get_height()
+    plt.text(bar.get_x() + bar.get_width()/2, y + 2, f"{y:.1f}%", ha="center", va="bottom", fontweight="bold")
+plt.tight_layout()
+plt.savefig("plots/fig8_distillation_recovery.png", dpi=300)
+plt.show()
+
+print("All 8 publication-grade visualization figures generated and saved to 'plots/'!")
+
+\n\n### CELL 13\n# ============================================================
+# Step 13: Real-Time Interactive Gradio Context Dashboard
+# ============================================================
+
+import gradio as gr
+
+def get_demo_model(method, pct, quant):
+    key = (method, pct, quant)
+    if key in live_model_pool:
+        return live_model_pool[key]
+
+    # Generate on demand
+    if method == "Dense Baseline" or pct == 0:
+        m = copy.deepcopy(base_mlm_model)
+    elif method == "Global L1":
+        m = prune_global_l1(base_mlm_model, pct / 100.0)
+    elif method == "Structured Ln":
+        m = prune_structured_ln(base_mlm_model, pct / 100.0)
+    elif method == "Random (Ablation)":
+        m = prune_random(base_mlm_model, pct / 100.0)
+    else:
+        m = prune_local_l1(base_mlm_model, pct / 100.0)
+
+    if quant == "Dynamic INT8":
+        m = quantize_dynamic_int8(m)
+    elif quant == "Simulated INT4":
+        m = quantize_simulated_int4(m)
+
+    m.eval().cpu()
+    live_model_pool[key] = m
+    return m
+
+def predict_masked_context(sentence, method, pct, quant):
+    if "[MASK]" not in sentence:
+        return "Error: Sentence must contain the '[MASK]' token.", {}, "N/A", "N/A"
+
+    m = get_demo_model(method, int(pct), quant)
+    inputs = tokenizer(sentence, return_tensors="pt")
+    mask_token_index = torch.where(inputs["input_ids"] == tokenizer.mask_token_id)[1]
+
+    if len(mask_token_index) == 0:
+        return "Error locating [MASK] token.", {}, "N/A", "N/A"
+
+    t0 = time.perf_counter()
+    with torch.no_grad():
+        outputs = m(**inputs)
+    latency_ms = (time.perf_counter() - t0) * 1000.0
+
+    mask_logits = outputs.logits[0, mask_token_index[0], :]
+    probs = torch.softmax(mask_logits, dim=-1)
+
+    top5_indices = torch.topk(mask_logits, 5, dim=-1).indices.tolist()
+    top5_probs = [float(probs[idx]) for idx in top5_indices]
+    top5_words = [tokenizer.decode([idx]).strip() for idx in top5_indices]
+
+    predictions_dict = {top5_words[i]: top5_probs[i] for i in range(5)}
+    best_word = top5_words[0]
+    filled_sentence = sentence.replace("[MASK]", f"**{best_word}**")
+
+    sparsity = measure_sparsity(m)
+    return filled_sentence, predictions_dict, f"{latency_ms:.2f} ms", f"{sparsity:.1f}%"
+
+def compare_sentence_similarity(sent1, sent2, method, pct, quant):
+    m = get_demo_model(method, int(pct), quant)
+
+    emb1_base = extract_mean_pooled_embedding(base_mlm_model.distilbert, sent1, tokenizer)
+    emb2_base = extract_mean_pooled_embedding(base_mlm_model.distilbert, sent2, tokenizer)
+    cos_sim_base = float(nn.CosineSimilarity(dim=0)(emb1_base, emb2_base))
+
+    emb1_comp = extract_mean_pooled_embedding(m.distilbert, sent1, tokenizer)
+    emb2_comp = extract_mean_pooled_embedding(m.distilbert, sent2, tokenizer)
+    cos_sim_comp = float(nn.CosineSimilarity(dim=0)(emb1_comp, emb2_comp))
+
+    drift_1 = float(nn.CosineSimilarity(dim=0)(emb1_base, emb1_comp))
+    drift_2 = float(nn.CosineSimilarity(dim=0)(emb2_base, emb2_comp))
+
+    md_output = f"""
+### 🌐 Semantic Representation Analysis
+| Metric | Baseline (Dense FP32) | Selected Model ({method} {pct}% {quant}) |
+| :--- | :--- | :--- |
+| **Sentence Pair Semantic Similarity** | **{cos_sim_base:.4f}** | **{cos_sim_comp:.4f}** |
+| **Sentence 1 Embedding Drift (vs Baseline)** | *1.0000 (Reference)* | **{drift_1:.4f}** |
+| **Sentence 2 Embedding Drift (vs Baseline)** | *1.0000 (Reference)* | **{drift_2:.4f}** |
+"""
+    return md_output
+
+with gr.Blocks(title="Language Model Context & Quantization Lab") as demo:
+    gr.Markdown("# 🔬 Comprehensive Language Model Context & Representation Lab")
+    gr.Markdown("Real-time testing harness for evaluating how pruning paradigms and multi-bit quantization impact language models.")
+
+    with gr.Tab("🔤 Context Token Prediction (Fill-Mask)"):
+        with gr.Row():
+            with gr.Column(scale=3):
+                txt_input = gr.Textbox(label="Sentence with [MASK]", value="Paris is the capital and largest city of [MASK].", lines=2)
+                with gr.Row():
+                    drop_method = gr.Dropdown(choices=["Local L1", "Global L1", "Structured Ln", "Random (Ablation)", "Global L1 (Distilled)"], value="Global L1", label="Pruning")
+                    slider_pct = gr.Slider(minimum=0, maximum=75, step=15, value=30, label="Sparsity (%)")
+                    radio_quant = gr.Radio(choices=["FP32", "Dynamic INT8", "Simulated INT4"], value="Dynamic INT8", label="Quantization")
+                btn_predict = gr.Button("🔮 Predict Contextual Token", variant="primary")
+            with gr.Column(scale=2):
+                txt_filled = gr.Markdown(label="Completed Context")
+                lbl_top5 = gr.Label(label="Top-5 Predicted Tokens", num_top_classes=5)
+                with gr.Row():
+                    out_lat = gr.Textbox(label="Inference Latency", interactive=False)
+                    out_spar = gr.Textbox(label="Model Sparsity", interactive=False)
+
+        btn_predict.click(
+            predict_masked_context,
+            inputs=[txt_input, drop_method, slider_pct, radio_quant],
+            outputs=[txt_filled, lbl_top5, out_lat, out_spar]
+        )
+
+        gr.Examples(
+            examples=[
+                ["Neural networks learn complex patterns by adjusting their [MASK] during training.", "Global L1", 30, "Dynamic INT8"],
+                ["The heart pumps oxygenated [MASK] throughout the human body.", "Local L1", 45, "FP32"],
+                ["Water boils at one hundred degrees [MASK].", "Global L1 (Distilled)", 45, "FP32"],
+                ["To protect their privacy, users should always use a strong [MASK] for their accounts.", "Dense Baseline", 0, "Simulated INT4"]
+            ],
+            inputs=[txt_input, drop_method, slider_pct, radio_quant]
+        )
+
+    with gr.Tab("📐 Semantic Embedding & Drift Explorer"):
+        gr.Markdown("### Evaluate Contextual Vector Stability Across Sentences")
+        with gr.Row():
+            s1 = gr.Textbox(label="Sentence 1", value="Artificial intelligence is transforming modern industries.", lines=2)
+            s2 = gr.Textbox(label="Sentence 2", value="Machine learning algorithms are revolutionizing commercial workflows.", lines=2)
+        with gr.Row():
+            sim_method = gr.Dropdown(choices=["Local L1", "Global L1", "Structured Ln", "Random (Ablation)"], value="Global L1", label="Pruning")
+            sim_pct = gr.Slider(minimum=0, maximum=75, step=15, value=30, label="Sparsity (%)")
+            sim_quant = gr.Radio(choices=["FP32", "Dynamic INT8", "Simulated INT4"], value="Dynamic INT8", label="Quantization")
+        btn_sim = gr.Button("📊 Compute Representation Similarity & Drift", variant="secondary")
+        sim_output = gr.Markdown()
+
+        btn_sim.click(
+            compare_sentence_similarity,
+            inputs=[s1, s2, sim_method, sim_pct, sim_quant],
+            outputs=[sim_output]
+        )
+
+demo.launch(share=True, debug=False)
+
+\n

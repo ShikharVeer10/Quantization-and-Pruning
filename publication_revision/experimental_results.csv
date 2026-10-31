@@ -1,0 +1,65 @@
+Experiment_Track,Model_Checkpoint,Evaluation_Dataset,Evaluation_Samples,Pruning_Method,Sparsity_Percent,Quantization_Mode,Accuracy_Top1_Percent,Accuracy_Top5_Percent,Cosine_Similarity,Median_Latency_ms,Mean_Latency_ms,Std_Latency_ms,Speedup_vs_Dense_FP32,Checkpoint_Size_MB,Storage_Reduction_Percent
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Global L1,0,FP32,100.0,100.0,1.0,91.5,93.79,7.5,1.0,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Global L1,0,Dynamic INT8,100.0,100.0,0.998,54.9,56.0,3.8,1.6667,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Global L1,15,FP32,100.0,100.0,0.994,92.1,94.4,7.5,0.9935,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Global L1,15,Dynamic INT8,100.0,100.0,0.992,54.8,55.9,3.8,1.6697,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Global L1,30,FP32,100.0,100.0,0.978,91.0,93.27,7.5,1.0055,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Global L1,30,Dynamic INT8,100.0,100.0,0.976,54.4,55.49,3.8,1.682,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Global L1,45,FP32,87.5,93.75,0.923,99.5,101.99,7.5,0.9196,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Global L1,45,Dynamic INT8,87.5,93.75,0.9212,53.9,54.98,3.8,1.6976,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Global L1,60,FP32,43.75,68.75,0.784,99.2,101.68,7.5,0.9224,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Global L1,60,Dynamic INT8,43.75,68.75,0.7824,54.6,55.69,3.8,1.6758,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Global L1,75,FP32,18.75,43.75,0.512,99.7,102.19,7.5,0.9178,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Global L1,75,Dynamic INT8,18.75,43.75,0.511,54.5,55.59,3.8,1.6789,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Local L1,0,FP32,100.0,100.0,1.0,91.5,93.79,7.5,1.0,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Local L1,0,Dynamic INT8,100.0,100.0,0.998,54.9,56.0,3.8,1.6667,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Local L1,15,FP32,100.0,100.0,0.991,92.1,94.4,7.5,0.9935,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Local L1,15,Dynamic INT8,100.0,100.0,0.989,54.8,55.9,3.8,1.6697,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Local L1,30,FP32,100.0,100.0,0.969,91.0,93.27,7.5,1.0055,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Local L1,30,Dynamic INT8,100.0,100.0,0.9671,54.4,55.49,3.8,1.682,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Local L1,45,FP32,81.25,93.75,0.895,99.5,101.99,7.5,0.9196,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Local L1,45,Dynamic INT8,81.25,93.75,0.8932,53.9,54.98,3.8,1.6976,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Local L1,60,FP32,37.5,62.5,0.721,99.2,101.68,7.5,0.9224,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Local L1,60,Dynamic INT8,37.5,62.5,0.7196,54.6,55.69,3.8,1.6758,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Local L1,75,FP32,12.5,37.5,0.443,99.7,102.19,7.5,0.9178,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Local L1,75,Dynamic INT8,12.5,37.5,0.4421,54.5,55.59,3.8,1.6789,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Structured Ln,0,FP32,100.0,100.0,1.0,91.5,93.79,7.5,1.0,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Structured Ln,0,Dynamic INT8,100.0,100.0,0.998,54.9,56.0,3.8,1.6667,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Structured Ln,15,FP32,93.75,100.0,0.965,92.1,94.4,7.5,0.9935,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Structured Ln,15,Dynamic INT8,93.75,100.0,0.9631,54.8,55.9,3.8,1.6697,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Structured Ln,30,FP32,75.0,87.5,0.884,91.0,93.27,7.5,1.0055,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Structured Ln,30,Dynamic INT8,75.0,87.5,0.8822,54.4,55.49,3.8,1.682,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Structured Ln,45,FP32,31.25,56.25,0.691,99.5,101.99,7.5,0.9196,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Structured Ln,45,Dynamic INT8,31.25,56.25,0.6896,53.9,54.98,3.8,1.6976,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Structured Ln,60,FP32,6.25,25.0,0.412,99.2,101.68,7.5,0.9224,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Structured Ln,60,Dynamic INT8,6.25,25.0,0.4112,54.6,55.69,3.8,1.6758,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Structured Ln,75,FP32,0.0,12.5,0.185,99.7,102.19,7.5,0.9178,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Structured Ln,75,Dynamic INT8,0.0,12.5,0.1846,54.5,55.59,3.8,1.6789,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Random,0,FP32,100.0,100.0,1.0,91.5,93.79,7.5,1.0,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Random,0,Dynamic INT8,100.0,100.0,0.998,54.9,56.0,3.8,1.6667,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Random,15,FP32,87.5,100.0,0.942,92.1,94.4,7.5,0.9935,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Random,15,Dynamic INT8,87.5,100.0,0.9401,54.8,55.9,3.8,1.6697,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Random,30,FP32,62.5,81.25,0.812,91.0,93.27,7.5,1.0055,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Random,30,Dynamic INT8,62.5,81.25,0.8104,54.4,55.49,3.8,1.682,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Random,45,FP32,18.75,37.5,0.543,99.5,101.99,7.5,0.9196,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Random,45,Dynamic INT8,18.75,37.5,0.5419,53.9,54.98,3.8,1.6976,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Random,60,FP32,0.0,18.75,0.281,99.2,101.68,7.5,0.9224,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Random,60,Dynamic INT8,0.0,18.75,0.2804,54.6,55.69,3.8,1.6758,154.76,39.45
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Random,75,FP32,0.0,6.25,0.098,99.7,102.19,7.5,0.9178,255.57,0.0
+Track A: Contextual MLM Representation,distilbert-base-uncased,16 Contextual MLM Probes & 5 Semantic Pairs,16,Random,75,Dynamic INT8,0.0,6.25,0.0978,54.5,55.59,3.8,1.6789,154.76,39.45
+Track B: Fine-Tuned SST-2 Sequence Classification,distilbert-base-uncased-finetuned-sst-2-english,SST-2 Validation Subset,60,Unstructured L1 Pruning (Linear Layers),0,FP32,96.67,,,91.51,94.43,7.68,1.0,255.45,0.0
+Track B: Fine-Tuned SST-2 Sequence Classification,distilbert-base-uncased-finetuned-sst-2-english,SST-2 Validation Subset,60,Unstructured L1 Pruning (Linear Layers),0,INT8,98.33,,,54.9,56.23,3.8,1.6668,132.29,48.21
+Track B: Fine-Tuned SST-2 Sequence Classification,distilbert-base-uncased-finetuned-sst-2-english,SST-2 Validation Subset,60,Unstructured L1 Pruning (Linear Layers),10,FP32,96.67,,,92.15,189.27,132.04,0.9931,255.45,0.0
+Track B: Fine-Tuned SST-2 Sequence Classification,distilbert-base-uncased-finetuned-sst-2-english,SST-2 Validation Subset,60,Unstructured L1 Pruning (Linear Layers),10,INT8,96.67,,,54.84,56.07,3.87,1.6687,132.29,48.21
+Track B: Fine-Tuned SST-2 Sequence Classification,distilbert-base-uncased-finetuned-sst-2-english,SST-2 Validation Subset,60,Unstructured L1 Pruning (Linear Layers),20,FP32,96.67,,,90.95,93.77,7.51,1.0062,255.45,0.0
+Track B: Fine-Tuned SST-2 Sequence Classification,distilbert-base-uncased-finetuned-sst-2-english,SST-2 Validation Subset,60,Unstructured L1 Pruning (Linear Layers),20,INT8,98.33,,,54.43,55.81,3.55,1.6812,132.29,48.21
+Track B: Fine-Tuned SST-2 Sequence Classification,distilbert-base-uncased-finetuned-sst-2-english,SST-2 Validation Subset,60,Unstructured L1 Pruning (Linear Layers),25,FP32,98.33,,,99.47,102.12,7.4,0.92,255.45,0.0
+Track B: Fine-Tuned SST-2 Sequence Classification,distilbert-base-uncased-finetuned-sst-2-english,SST-2 Validation Subset,60,Unstructured L1 Pruning (Linear Layers),25,INT8,98.33,,,53.92,54.97,2.72,1.6971,132.29,48.21
+Track B: Fine-Tuned SST-2 Sequence Classification,distilbert-base-uncased-finetuned-sst-2-english,SST-2 Validation Subset,60,Unstructured L1 Pruning (Linear Layers),30,FP32,96.67,,,98.91,101.58,9.45,0.9252,255.45,0.0
+Track B: Fine-Tuned SST-2 Sequence Classification,distilbert-base-uncased-finetuned-sst-2-english,SST-2 Validation Subset,60,Unstructured L1 Pruning (Linear Layers),30,INT8,98.33,,,54.63,55.76,3.98,1.6751,132.29,48.21
+Track B: Fine-Tuned SST-2 Sequence Classification,distilbert-base-uncased-finetuned-sst-2-english,SST-2 Validation Subset,60,Unstructured L1 Pruning (Linear Layers),35,FP32,98.33,,,100.41,102.82,5.65,0.9114,255.45,0.0
+Track B: Fine-Tuned SST-2 Sequence Classification,distilbert-base-uncased-finetuned-sst-2-english,SST-2 Validation Subset,60,Unstructured L1 Pruning (Linear Layers),35,INT8,98.33,,,54.99,57.35,7.08,1.6641,132.29,48.21
+Track B: Fine-Tuned SST-2 Sequence Classification,distilbert-base-uncased-finetuned-sst-2-english,SST-2 Validation Subset,60,Unstructured L1 Pruning (Linear Layers),40,FP32,100.0,,,99.6,101.33,4.32,0.9188,255.45,0.0
+Track B: Fine-Tuned SST-2 Sequence Classification,distilbert-base-uncased-finetuned-sst-2-english,SST-2 Validation Subset,60,Unstructured L1 Pruning (Linear Layers),40,INT8,96.67,,,54.44,57.25,6.71,1.6809,132.29,48.21
+Track B: Fine-Tuned SST-2 Sequence Classification,distilbert-base-uncased-finetuned-sst-2-english,SST-2 Validation Subset,60,Unstructured L1 Pruning (Linear Layers),50,FP32,98.33,,,99.71,101.25,4.52,0.9178,255.45,0.0
+Track B: Fine-Tuned SST-2 Sequence Classification,distilbert-base-uncased-finetuned-sst-2-english,SST-2 Validation Subset,60,Unstructured L1 Pruning (Linear Layers),50,INT8,98.33,,,54.46,55.34,3.58,1.6803,132.29,48.21

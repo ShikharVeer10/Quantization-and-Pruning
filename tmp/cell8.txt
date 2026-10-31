@@ -1,0 +1,95 @@
+Starting Multi-Dimensional Compression & Representation Grid Search...
+Total experiment configurations to evaluate: 43
+
+
+============================== Evaluating Pruning Method: Local L1 ==============================
+
+--- Pruning Level: 15% ---
+  [FP32] Sparsity: 15.0% | Top-1: 43.75% | Top-5: 75.0% | CosSim: 0.9903 | Latency: 205.44 ms
+  [INT8] Sparsity: 15.0% | Top-1: 50.0% | Top-5: 75.0% | CosSim: 0.9370 | Latency: 121.99 ms | Size: 154.77 MB
+
+--- Pruning Level: 30% ---
+  [FP32] Sparsity: 30.0% | Top-1: 25.0% | Top-5: 62.5% | CosSim: 0.9585 | Latency: 134.77 ms
+  [INT8] Sparsity: 30.0% | Top-1: 18.75% | Top-5: 37.5% | CosSim: 0.9213 | Latency: 78.33 ms | Size: 154.77 MB
+
+--- Pruning Level: 45% ---
+  [FP32] Sparsity: 45.0% | Top-1: 12.5% | Top-5: 12.5% | CosSim: 0.8325 | Latency: 136.77 ms
+  [INT8] Sparsity: 45.0% | Top-1: 0.0% | Top-5: 18.75% | CosSim: 0.8221 | Latency: 77.84 ms | Size: 154.77 MB
+
+--- Pruning Level: 60% ---
+  [FP32] Sparsity: 60.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4970 | Latency: 136.49 ms
+  [INT8] Sparsity: 60.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4634 | Latency: 79.26 ms | Size: 154.77 MB
+
+--- Pruning Level: 75% ---
+  [FP32] Sparsity: 75.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4070 | Latency: 135.66 ms
+  [INT8] Sparsity: 75.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.3861 | Latency: 78.13 ms | Size: 154.77 MB
+
+============================== Evaluating Pruning Method: Global L1 ==============================
+
+--- Pruning Level: 15% ---
+  [FP32] Sparsity: 15.0% | Top-1: 43.75% | Top-5: 75.0% | CosSim: 0.9882 | Latency: 136.07 ms
+  [INT8] Sparsity: 15.0% | Top-1: 43.75% | Top-5: 75.0% | CosSim: 0.9366 | Latency: 78.86 ms | Size: 154.77 MB
+
+--- Pruning Level: 30% ---
+  [FP32] Sparsity: 30.0% | Top-1: 25.0% | Top-5: 75.0% | CosSim: 0.9464 | Latency: 135.77 ms
+  [INT8] Sparsity: 30.0% | Top-1: 12.5% | Top-5: 37.5% | CosSim: 0.9122 | Latency: 78.06 ms | Size: 154.77 MB
+
+--- Pruning Level: 45% ---
+  [FP32] Sparsity: 45.0% | Top-1: 12.5% | Top-5: 12.5% | CosSim: 0.7791 | Latency: 133.59 ms
+  [INT8] Sparsity: 45.0% | Top-1: 0.0% | Top-5: 18.75% | CosSim: 0.7804 | Latency: 76.15 ms | Size: 154.77 MB
+
+--- Pruning Level: 60% ---
+  [FP32] Sparsity: 60.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.5212 | Latency: 133.88 ms
+  [INT8] Sparsity: 60.0% | Top-1: 0.0% | Top-5: 6.25% | CosSim: 0.5330 | Latency: 78.35 ms | Size: 154.77 MB
+
+--- Pruning Level: 75% ---
+  [FP32] Sparsity: 75.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4467 | Latency: 133.6 ms
+  [INT8] Sparsity: 75.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4485 | Latency: 76.48 ms | Size: 154.77 MB
+
+============================== Evaluating Pruning Method: Structured Ln ==============================
+
+--- Pruning Level: 15% ---
+  [FP32] Sparsity: 14.99% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.2642 | Latency: 134.74 ms
+  [INT8] Sparsity: 14.99% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.2887 | Latency: 79.35 ms | Size: 154.77 MB
+
+--- Pruning Level: 30% ---
+  [FP32] Sparsity: 29.98% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.3446 | Latency: 132.39 ms
+  [INT8] Sparsity: 29.98% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.3454 | Latency: 78.01 ms | Size: 154.77 MB
+
+--- Pruning Level: 45% ---
+  [FP32] Sparsity: 45.02% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.3449 | Latency: 133.67 ms
+  [INT8] Sparsity: 45.02% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.3078 | Latency: 76.82 ms | Size: 154.77 MB
+
+--- Pruning Level: 60% ---
+  [FP32] Sparsity: 60.01% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.3989 | Latency: 132.27 ms
+  [INT8] Sparsity: 60.01% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.3879 | Latency: 77.54 ms | Size: 154.77 MB
+
+--- Pruning Level: 75% ---
+  [FP32] Sparsity: 75.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4710 | Latency: 131.35 ms
+  [INT8] Sparsity: 75.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4691 | Latency: 76.75 ms | Size: 154.77 MB
+
+============================== Evaluating Pruning Method: Random (Ablation) ==============================
+
+--- Pruning Level: 15% ---
+  [FP32] Sparsity: 15.0% | Top-1: 12.5% | Top-5: 25.0% | CosSim: 0.7701 | Latency: 132.02 ms
+  [INT8] Sparsity: 15.0% | Top-1: 6.25% | Top-5: 18.75% | CosSim: 0.7340 | Latency: 75.73 ms | Size: 154.77 MB
+
+--- Pruning Level: 30% ---
+  [FP32] Sparsity: 30.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.5743 | Latency: 131.49 ms
+  [INT8] Sparsity: 30.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.5887 | Latency: 78.79 ms | Size: 154.77 MB
+
+--- Pruning Level: 45% ---
+  [FP32] Sparsity: 45.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4937 | Latency: 131.57 ms
+  [INT8] Sparsity: 45.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4990 | Latency: 77.56 ms | Size: 154.77 MB
+
+--- Pruning Level: 60% ---
+  [FP32] Sparsity: 60.0% | Top-1: 0.0% | Top-5: 6.25% | CosSim: 0.4845 | Latency: 133.45 ms
+  [INT8] Sparsity: 60.0% | Top-1: 0.0% | Top-5: 6.25% | CosSim: 0.4883 | Latency: 76.75 ms | Size: 154.77 MB
+
+--- Pruning Level: 75% ---
+  [FP32] Sparsity: 75.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4846 | Latency: 132.76 ms
+  [INT8] Sparsity: 75.0% | Top-1: 0.0% | Top-5: 0.0% | CosSim: 0.4834 | Latency: 77.69 ms | Size: 154.77 MB
+
+--- Evaluating Unpruned Multi-Bit Quantization Baselines ---
+
+✓ Multi-Dimensional Grid Search Execution Completed!

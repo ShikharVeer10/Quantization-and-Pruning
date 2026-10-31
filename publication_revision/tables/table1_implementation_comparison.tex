@@ -1,0 +1,28 @@
+\begin{table*}[!t]
+\caption{Systematic Comparison Between Experimental Implementations (Track A vs. Track B)}
+\label{tab:implementation_comparison}
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{p{4.2cm}p{6.5cm}p{6.5cm}}
+\hline
+\textbf{Architectural \& Experimental Dimension} & \textbf{Track A: Masked-Token Context Representation} & \textbf{Track B: Fine-Tuned SST-2 Sequence Classification} \\
+\hline
+HuggingFace Checkpoint & \texttt{distilbert-base-uncased} & \texttt{distilbert-base-uncased-}\allowbreak\texttt{finetuned-sst-2-english} \\
+Target Task & Masked Language Modeling (MLM) & Binary Sentiment Classification \\
+Output Head Architecture & Transform + LayerNorm + Vocab Proj (30,522 classes) & Pre-Classifier (768) + Dropout + Classifier (2 classes) \\
+Head Parameters & 23,885,306 parameters (622,650 unique tied) & 592,130 parameters \\
+Total Model Parameters & 66,985,530 parameters & 66,955,010 parameters \\
+Evaluation Dataset & 16 Multi-Domain Probes \& 5 Semantic Pairs & SST-2 Validation Subset ($N=60$ examples) \\
+Evaluation Metrics & Top-1 / Top-5 Token Acc., Mean Cosine Similarity & Classification Accuracy (\%), Prediction Drift \\
+Pruning Regimes & Local $L_1$, Global $L_1$, Structured $L_n$, Random & PyTorch Unstructured $L_1$ on Linear modules \\
+Evaluated Sparsity Grid & 0\%, 15\%, 30\%, 45\%, 60\%, 75\% & 0\%, 10\%, 20\%, 25\%, 30\%, 35\%, 40\%, 50\% \\
+Quantization Schemes & FP32, Dynamic INT8, Simulated INT4 & FP32, Dynamic INT8 (\texttt{torch.ao.quantization}) \\
+Inference Input Format & Dynamic sequence lengths (12 to 28 tokens) & Fixed tokenized tensor: $[1, 64]$ \\
+Latency Benchmark Protocol & $N=50$ iterations, $W=5$ warmup, CPU & $N=50$ iterations, $W=5$ warmup, \texttt{perf\_counter}, CPU \\
+Distillation Recovery & Implemented (Teacher-Student Masked KD, 45\%) & Not evaluated in base classification suite \\
+Serialized Disk Size & FP32: 255.57 MB, INT8: 154.76 MB ($-$39.5\%) & FP32: 255.45 MB, INT8: 132.29 MB ($-$48.2\%) \\
+Primary Objective & RQ1--RQ5: Semantic Geometry \& Submodule Collapse & Classification Robustness \& Real-World CPU Latency \\
+\hline
+\end{tabular}%
+}
+\end{table*}

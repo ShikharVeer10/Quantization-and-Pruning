@@ -1,0 +1,233 @@
+{
+  "distillation": {
+    "pre_top1": 12.5,
+    "pre_top5": 12.5,
+    "pre_cos_sim": 0.7791,
+    "pre_sparsity": 45.0,
+    "post_top1": 18.75,
+    "post_top5": 37.5,
+    "post_cos_sim": 0.8773,
+    "post_sparsity": 45.0
+  },
+  "precision": {
+    "fp16": {
+      "top1": 37.5,
+      "top5": 75.0,
+      "cos_sim": 1.0,
+      "size_mb": 127.8
+    },
+    "dense_int8": {
+      "top1": 43.75,
+      "top5": 50.0,
+      "cos_sim": 0.945,
+      "size_mb": 154.76
+    },
+    "dense_int4": {
+      "top1": 18.75,
+      "top5": 75.0,
+      "cos_sim": 0.9228,
+      "theoretical_size_mib": 31.94
+    },
+    "global_l1_30_int4": {
+      "top1": 25.0,
+      "top5": 37.5,
+      "cos_sim": 0.9109,
+      "theoretical_size_mib": 31.94
+    }
+  },
+  "latency": {
+    "cpu_model": "Intel64 Family 6 Model 186 Stepping 3, GenuineIntel",
+    "threads": 1,
+    "dense_fp32": {
+      "median": 170.33,
+      "p95": 204.37
+    },
+    "global_l1_45_fp32": {
+      "median": 170.87,
+      "p95": 187.91
+    },
+    "dense_int8": {
+      "median": 95.03,
+      "p95": 113.19
+    }
+  },
+  "random_seeds": {
+    "15": {
+      "top1_mean": 18.75,
+      "top1_std": 5.1,
+      "top5_mean": 37.5,
+      "top5_std": 10.21,
+      "cos_mean": 0.7683,
+      "cos_std": 0.0241,
+      "raw_top1": [
+        12.5,
+        25.0,
+        18.75
+      ],
+      "raw_top5": [
+        25.0,
+        50.0,
+        37.5
+      ],
+      "raw_cos": [
+        0.7701,
+        0.7379,
+        0.7969
+      ]
+    },
+    "30": {
+      "top1_mean": 0.0,
+      "top1_std": 0.0,
+      "top5_mean": 0.0,
+      "top5_std": 0.0,
+      "cos_mean": 0.5542,
+      "cos_std": 0.0438,
+      "raw_top1": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "raw_top5": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "raw_cos": [
+        0.5043,
+        0.5473,
+        0.611
+      ]
+    },
+    "45": {
+      "top1_mean": 0.0,
+      "top1_std": 0.0,
+      "top5_mean": 0.0,
+      "top5_std": 0.0,
+      "cos_mean": 0.5125,
+      "cos_std": 0.0017,
+      "raw_top1": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "raw_top5": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "raw_cos": [
+        0.5102,
+        0.5132,
+        0.5142
+      ]
+    },
+    "60": {
+      "top1_mean": 0.0,
+      "top1_std": 0.0,
+      "top5_mean": 0.0,
+      "top5_std": 0.0,
+      "cos_mean": 0.4979,
+      "cos_std": 0.0076,
+      "raw_top1": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "raw_top5": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "raw_cos": [
+        0.4873,
+        0.5048,
+        0.5017
+      ]
+    },
+    "75": {
+      "top1_mean": 0.0,
+      "top1_std": 0.0,
+      "top5_mean": 0.0,
+      "top5_std": 0.0,
+      "cos_mean": 0.4751,
+      "cos_std": 0.0139,
+      "raw_top1": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "raw_top5": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "raw_cos": [
+        0.4843,
+        0.4855,
+        0.4555
+      ]
+    }
+  },
+  "structured_comparison": {
+    "15": {
+      "encoder_only": {
+        "top1": 0.0,
+        "top5": 0.0,
+        "cos_sim": 0.4889
+      },
+      "all_linear_ablation": {
+        "top1": 0.0,
+        "top5": 0.0,
+        "cos_sim": 0.2642
+      }
+    },
+    "30": {
+      "encoder_only": {
+        "top1": 0.0,
+        "top5": 0.0,
+        "cos_sim": 0.4129
+      },
+      "all_linear_ablation": {
+        "top1": 0.0,
+        "top5": 0.0,
+        "cos_sim": 0.3446
+      }
+    },
+    "45": {
+      "encoder_only": {
+        "top1": 0.0,
+        "top5": 0.0,
+        "cos_sim": 0.4534
+      },
+      "all_linear_ablation": {
+        "top1": 0.0,
+        "top5": 0.0,
+        "cos_sim": 0.3449
+      }
+    },
+    "60": {
+      "encoder_only": {
+        "top1": 0.0,
+        "top5": 6.25,
+        "cos_sim": 0.4549
+      },
+      "all_linear_ablation": {
+        "top1": 0.0,
+        "top5": 0.0,
+        "cos_sim": 0.3989
+      }
+    },
+    "75": {
+      "encoder_only": {
+        "top1": 0.0,
+        "top5": 0.0,
+        "cos_sim": 0.4985
+      },
+      "all_linear_ablation": {
+        "top1": 0.0,
+        "top5": 0.0,
+        "cos_sim": 0.471
+      }
+    }
+  }
+}

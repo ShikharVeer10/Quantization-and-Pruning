@@ -1,0 +1,9 @@
+# Template distillation contract
+
+- Reference: `C:\Users\shikh\Downloads\Conference template.docx`; supplied by the user. It is a strict OOXML Word package, which the bundled python-docx reader does not open directly.
+- Template evidence: document styles include `papertitle`, `Author`, `Abstract`, `Keywords`, `Heading1` through `Heading5`, `BodyText`, `equation`, `figurecaption`, `tablehead`, `tablecolhead`, `tablecopy`, `tablefootnote`, `references`, and `bulletlist`.
+- Page system evidence from `word/document.xml`: A4 595.30 x 841.90 pt; template margins include left/right 44.65 pt, top 54 pt, bottom 72 pt; footer distance 36 pt. Template contains a two-column section (`w:cols num=2`, 18 pt gap) and a one-column title section. The retained title/author content is intended to use one column, then the main manuscript flows in two columns.
+- Package includes `word/footer1.xml`, `word/styles.xml`, `word/numbering.xml`, `word/theme/theme1.xml`, and the template document content. Keep page setup, styles, numbering, footer, and relationships from the retained package.
+- Slot map: replace title text with the supplied title; replace/retain one Author block with the five requested placeholders; replace abstract and keywords; replace all instructional body text with the paper; remove sponsor guidance and sample equation/table/figure/reference content; retain only needed styles and footer.
+- Formatting gate: use the actual named styles; no manual font, size, spacing, column width, or margin overrides. A task-local working copy is required. Render and inspect every page after the manuscript is assembled.
+- Unresolved evidence: template page count and visual page images were not established because this machine has no LibreOffice renderer; Word export is still to be attempted. SHA-256 is not recorded in this initial draft contract.

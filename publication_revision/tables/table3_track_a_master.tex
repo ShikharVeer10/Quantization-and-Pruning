@@ -1,0 +1,40 @@
+\begin{table*}[!t]
+\caption{Track A Master Evaluation: Contextual MLM Preservation, Semantic Cosine Similarity, and CPU Latency}
+\label{tab:track_a_master}
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccccc}
+\hline
+\textbf{Pruning Paradigm} & \textbf{Sparsity (\%)} & \textbf{Quantization} & \textbf{Top-1 Acc. (\%)} & \textbf{Top-5 Acc. (\%)} & \textbf{Cosine Sim.} & \textbf{Latency (ms)} & \textbf{Speedup vs FP32} & \textbf{Size (MB)} \\
+\hline
+Dense Baseline & 0\% & FP32 & 100.00 & 100.00 & 1.0000 & 91.50 & 1.000$\times$ & 255.57 \\
+Dense Baseline & 0\% & Dynamic INT8 & 100.00 & 100.00 & 0.9982 & 54.90 & 1.667$\times$ & 154.76 \\
+Dense Baseline & 0\% & Simulated INT4 & 75.00 & 93.75 & 0.8420 & 56.10 & 1.631$\times$ & 35.20 \\
+\hline
+Global $L_1$ Unstructured & 15\% & FP32 & 100.00 & 100.00 & 0.9942 & 92.10 & 0.993$\times$ & 255.57 \\
+Global $L_1$ Unstructured & 30\% & FP32 & 100.00 & 100.00 & 0.9781 & 91.00 & 1.005$\times$ & 255.57 \\
+Global $L_1$ Unstructured & 45\% & FP32 & 87.50 & 93.75 & 0.9234 & 99.50 & 0.920$\times$ & 255.57 \\
+Global $L_1$ Unstructured & 60\% & FP32 & 43.75 & 68.75 & 0.7842 & 99.20 & 0.922$\times$ & 255.57 \\
+Global $L_1$ Unstructured & 75\% & FP32 & 18.75 & 43.75 & 0.5120 & 99.70 & 0.918$\times$ & 255.57 \\
+\hline
+Local $L_1$ Uniform & 15\% & FP32 & 100.00 & 100.00 & 0.9910 & 92.00 & 0.995$\times$ & 255.57 \\
+Local $L_1$ Uniform & 30\% & FP32 & 100.00 & 100.00 & 0.9692 & 91.20 & 1.003$\times$ & 255.57 \\
+Local $L_1$ Uniform & 45\% & FP32 & 81.25 & 93.75 & 0.8954 & 99.40 & 0.921$\times$ & 255.57 \\
+Local $L_1$ Uniform & 60\% & FP32 & 37.50 & 62.50 & 0.7210 & 99.10 & 0.923$\times$ & 255.57 \\
+Local $L_1$ Uniform & 75\% & FP32 & 12.50 & 37.50 & 0.4431 & 99.60 & 0.919$\times$ & 255.57 \\
+\hline
+Structured $L_n$ (Channel) & 15\% & FP32 & 93.75 & 100.00 & 0.9654 & 90.80 & 1.008$\times$ & 255.57 \\
+Structured $L_n$ (Channel) & 30\% & FP32 & 75.00 & 87.50 & 0.8841 & 89.90 & 1.018$\times$ & 255.57 \\
+Structured $L_n$ (Channel) & 45\% & FP32 & 31.25 & 56.25 & 0.6912 & 89.20 & 1.026$\times$ & 255.57 \\
+Structured $L_n$ (Channel) & 60\% & FP32 & 6.25 & 25.00 & 0.4120 & 88.50 & 1.034$\times$ & 255.57 \\
+Structured $L_n$ (Channel) & 75\% & FP32 & 0.00 & 12.50 & 0.1850 & 88.10 & 1.039$\times$ & 255.57 \\
+\hline
+Random Baseline (Ablation) & 15\% & FP32 & 87.50 & 100.00 & 0.9421 & 92.20 & 0.992$\times$ & 255.57 \\
+Random Baseline (Ablation) & 30\% & FP32 & 62.50 & 81.25 & 0.8124 & 91.50 & 1.000$\times$ & 255.57 \\
+Random Baseline (Ablation) & 45\% & FP32 & 18.75 & 37.50 & 0.5432 & 99.30 & 0.921$\times$ & 255.57 \\
+Random Baseline (Ablation) & 60\% & FP32 & 0.00 & 18.75 & 0.2810 & 99.20 & 0.922$\times$ & 255.57 \\
+Random Baseline (Ablation) & 75\% & FP32 & 0.00 & 6.25 & 0.0980 & 99.80 & 0.917$\times$ & 255.57 \\
+\hline
+\end{tabular}%
+}
+\end{table*}

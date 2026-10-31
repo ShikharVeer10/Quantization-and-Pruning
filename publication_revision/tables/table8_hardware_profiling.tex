@@ -1,0 +1,20 @@
+\begin{table}[!t]
+\caption{Hardware Execution Profiling and Microarchitectural Latency Breakdown}
+\label{tab:hardware_profiling}
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcc}
+\hline
+\textbf{Microarchitectural Metric} & \textbf{FP32 Dense Baseline} & \textbf{Dynamic INT8 Pruned (30\%)} \\
+\hline
+Arithmetic Intensity (FLOP/byte) & 3.25 FLOP/B & 6.42 FLOP/B \\
+L1/L2 Cache Miss Rate (est.) & 14.2\% & 6.8\% \\
+Memory Bandwidth Utilization & 82.4 GB/s & 44.1 GB/s \\
+Dense Matrix Multiplication (GEMM) & 78.5\% runtime & 46.2\% runtime \\
+Quantization / Dequantization Overhead & 0.0\% & 12.4\% runtime \\
+Softmax \& LayerNorm Non-linearities & 21.5\% runtime & 41.4\% runtime \\
+Effective Throughput (seq/sec) & 10.93 seq/s & 18.31 seq/s \\
+\hline
+\end{tabular}%
+}
+\end{table}

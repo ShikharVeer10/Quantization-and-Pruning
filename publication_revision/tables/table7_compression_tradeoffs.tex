@@ -1,0 +1,18 @@
+\begin{table}[!t]
+\caption{Comprehensive Comparison of Precision Formats and Hardware Trade-Offs}
+\label{tab:precision_tradeoffs}
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccccc}
+\hline
+\textbf{Precision Format} & \textbf{Bits} & \textbf{Disk Footprint} & \textbf{Bandwidth} & \textbf{CPU Speedup} & \textbf{Degradation Risk} \\
+\hline
+Standard IEEE FP32 & 32 & 255.5 MB (1.00$\times$) & 1.00$\times$ & 1.00$\times$ & None (Baseline) \\
+Native Half-Precision FP16 & 16 & 127.8 MB (0.50$\times$) & 0.50$\times$ & 1.05$\times$--1.10$\times$$^*$ & Minimal ($<0.1$ pp) \\
+Dynamic INT8 (PyTorch AO) & 8 & 132.3--154.8 MB & 0.52$\times$ & 1.67$\times$--1.70$\times$ & Negligible ($\pm 1.6$ pp) \\
+Simulated INT4 (Uniform) & 4 & 35.2 MB (0.14$\times$) & 0.14$\times$ & 1.63$\times$$^\ddagger$ & Severe ($-25.0$ pp) \\
+\hline
+\multicolumn{6}{l}{\scriptsize $^*$CPU emulation overhead; $^\ddagger$Simulated in FP32 runtime without native 4-bit packed GEMM kernels.}
+\end{tabular}%
+}
+\end{table}

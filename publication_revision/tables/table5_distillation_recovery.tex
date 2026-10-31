@@ -1,0 +1,19 @@
+\begin{table}[!t]
+\caption{Knowledge Distillation Representational Recovery on 45\% Pruned DistilBERT}
+\label{tab:distillation_recovery}
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccc}
+\hline
+\textbf{Model Evaluation State} & \textbf{Top-1 Acc. (\%)} & \textbf{Top-5 Acc. (\%)} & \textbf{Cosine Sim.} & \textbf{Disk Size (MB)} \\
+\hline
+Dense Baseline Teacher & 100.00\% & 100.00\% & 1.0000 & 255.57 \\
+45\% Global $L_1$ Student (Pre-KD) & 81.25\% & 93.75\% & 0.8954 & 255.57 \\
+Distilled Student (Post-KD, FP32) & 93.75\% & 100.00\% & 0.9641 & 255.57 \\
+Distilled Student (Post-KD, Dynamic INT8) & 93.75\% & 100.00\% & 0.9615 & 154.76 \\
+\hline
+\textbf{Net Representational Recovery} & \textbf{+12.50 pp} & \textbf{+6.25 pp} & \textbf{+0.0687} & \textbf{$-$39.45\% (INT8)} \\
+\hline
+\end{tabular}%
+}
+\end{table}

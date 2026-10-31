@@ -1,0 +1,139 @@
+\relax 
+\citation{devlin2018bert}
+\citation{sanh2019distilbert}
+\citation{han2015learning,han2016deep,frankle2018lottery}
+\citation{jacob2018quantization,nagel2021white,dettmers2022llm}
+\citation{wang2018glue}
+\citation{hooker2019compressed}
+\citation{hooker2020hardware}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{}\protected@file@percent }
+\citation{han2015learning}
+\citation{gordon2020compressing}
+\citation{frankle2018lottery}
+\citation{chen2020lottery}
+\citation{michel2019sixteen,voita2019analyzing}
+\citation{jacob2018quantization,nagel2021white}
+\citation{zafrir2019q8bert,bhandare2019efficient}
+\citation{frantar2022gptq,lin2023awq}
+\citation{hinton2015distilling}
+\citation{sanh2019distilbert}
+\citation{jiao2019tinybert}
+\citation{wang2020minilm}
+\citation{socher2013recursive}
+\@writefile{toc}{\contentsline {section}{\numberline {II}Related Work}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-A}}Transformer Sparsification and Pruning}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}Quantization of Deep Neural Networks}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}Knowledge Distillation and Task Decoupling}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {III}Model Architectures and Experimental Setup}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}Architectural Demarcation: Track A vs. Track B}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Parameter Accounting and Submodule Taxonomy}{2}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Systematic Comparison Between Experimental Implementations (Track A vs. Track B)}}{3}{}\protected@file@percent }
+\newlabel{tab:implementation_comparison}{{I}{3}{}{table.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces DistilBERT Architectural Parameter Accounting and Submodule Taxonomy}}{3}{}\protected@file@percent }
+\newlabel{tab:parameter_accounting}{{II}{3}{}{table.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}Environment Setup and Deterministic Reproducibility (Step 1)}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-D}}Linguistic Evaluation Suite and Semantic Geometry (Step 3)}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Methodology}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Pruning Formulations and Paradigms}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-A}1}Local Unstructured $L_1$ Pruning}{3}{}\protected@file@percent }
+\newlabel{eq:local_pruning}{{1}{3}{}{equation.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-A}2}Global Unstructured $L_1$ Pruning}{3}{}\protected@file@percent }
+\newlabel{eq:global_pruning}{{2}{4}{}{equation.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-A}3}Structured $L_n$ Channel Pruning}{4}{}\protected@file@percent }
+\newlabel{eq:structured_pruning}{{3}{4}{}{equation.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-A}4}Random Unstructured Pruning (Ablation Baseline)}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Multi-Bit Quantization Schemes}{4}{}\protected@file@percent }
+\newlabel{eq:quantization}{{4}{4}{}{equation.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}Latent Contextual Geometry and Semantic Drift}{4}{}\protected@file@percent }
+\newlabel{eq:mean_pooling}{{6}{4}{}{equation.6}{}}
+\newlabel{eq:cosine_sim}{{7}{4}{}{equation.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-D}}Post-Pruning Knowledge Distillation}{4}{}\protected@file@percent }
+\newlabel{eq:distillation}{{8}{4}{}{equation.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-E}}Inference Latency Benchmarking Protocol}{4}{}\protected@file@percent }
+\newlabel{eq:speedup}{{9}{4}{}{equation.9}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {V}Experimental Results and Analysis}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Track A: Contextual Representation Preservation and Probing}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}1}RQ1: Context Accuracy Collapse Cliff}{4}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Track A Master Evaluation: Contextual MLM Preservation, Semantic Cosine Similarity, and CPU Latency}}{5}{}\protected@file@percent }
+\newlabel{tab:track_a_master}{{III}{5}{}{table.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Contextual Top-1 accuracy across four pruning regimes (0\% to 75\% sparsity) in Track A, demonstrating the non-linear representation cliff at $\approx 45\text  {--}50\%$.}}{5}{}\protected@file@percent }
+\newlabel{fig:context_acc}{{1}{5}{}{figure.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}2}Semantic Embedding Cosine Decay}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}3}RQ2: Architectural Sensitivity and Layer Allocation}{5}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Semantic embedding cosine similarity decay against the dense baseline, highlighting the superior geometric fidelity preserved by Global $L_1$ pruning.}}{5}{}\protected@file@percent }
+\newlabel{fig:cosine_decay}{{2}{5}{}{figure.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Layer-Wise and Submodule Sparsity Allocation under 45\% Global $L_1$ Pruning}}{5}{}\protected@file@percent }
+\newlabel{tab:layerwise_sparsity}{{IV}{5}{}{table.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Heatmap of empirical sparsity allocation across transformer layers and submodules under 45\% Global $L_1$ pruning.}}{6}{}\protected@file@percent }
+\newlabel{fig:layer_heatmap}{{3}{6}{}{figure.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Disk storage footprint across pruning levels for FP32 and Dynamic INT8 in Track A. Unstructured pruning yields zero disk reduction without sparse compression.}}{6}{}\protected@file@percent }
+\newlabel{fig:storage_footprint}{{4}{6}{}{figure.4}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}4}RQ3: Precision Spectrum and Storage Footprint}{6}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}5}RQ4: Distillation Recovery Efficacy}{6}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Storage footprint and memory requirements across the precision spectrum (FP32 $\to $ FP16 $\to $ Dynamic INT8 $\to $ Simulated INT4).}}{6}{}\protected@file@percent }
+\newlabel{fig:precision_spectrum}{{5}{6}{}{figure.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces Knowledge Distillation Representational Recovery on 45\% Pruned DistilBERT}}{6}{}\protected@file@percent }
+\newlabel{tab:distillation_recovery}{{V}{6}{}{table.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Representational accuracy recovery on the degraded 45\% pruned DistilBERT student model using lightweight knowledge distillation.}}{6}{}\protected@file@percent }
+\newlabel{fig:distillation_recovery}{{6}{6}{}{figure.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Track B: Fine-Tuned SST-2 Sequence Classification and CPU Benchmark}{6}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {VI}{\ignorespaces Track B Master Benchmark: Fine-Tuned SST-2 Sequence Classification Accuracy, CPU Latency Distribution, and Verified Speedup}}{7}{}\protected@file@percent }
+\newlabel{tab:track_b_benchmark}{{VI}{7}{}{table.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Hardware disconnect in Track A: measured CPU inference latency versus theoretical FLOP reductions under unstructured pruning.}}{7}{}\protected@file@percent }
+\newlabel{fig:latency_sparsity}{{7}{7}{}{figure.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Contextual accuracy versus CPU inference latency Pareto frontier across configurations in Track A.}}{7}{}\protected@file@percent }
+\newlabel{fig:pareto_frontier}{{8}{7}{}{figure.8}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}1}SST-2 Task Accuracy Robustness}{7}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Graph 1: Model size on disk across pruning levels for fine-tuned SST-2 DistilBERT. INT8 delivers a verified 48.20\% reduction (255.45 MB $\to $ 132.29 MB).}}{7}{}\protected@file@percent }
+\newlabel{fig:graph1_size}{{9}{7}{}{figure.9}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}2}RQ5: The Hardware-Sparsity Disconnect in CPU Latency}{7}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Graph 4: SST-2 classification accuracy versus sparsity for FP32 and Dynamic INT8 ($N=60$ validation samples).}}{8}{}\protected@file@percent }
+\newlabel{fig:graph4_acc}{{10}{8}{}{figure.10}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Graph 2: CPU inference latency (median ms) across pruning levels for FP32 on input shape [1, 64] (50 timed runs).}}{8}{}\protected@file@percent }
+\newlabel{fig:graph2_latency}{{11}{8}{}{figure.11}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}3}Investigation of the 10\% FP32 Latency Anomaly}{8}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Graph 3: Measured inference speedup relative to dense FP32 baseline, demonstrating that unstructured pruning yields no speedup on dense CPU kernels.}}{8}{}\protected@file@percent }
+\newlabel{fig:graph3_speedup}{{12}{8}{}{figure.12}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces Graph 5: Inference latency versus sparsity, illustrating the step increase in FP32 CPU latency observed beyond 20\% sparsity.}}{8}{}\protected@file@percent }
+\newlabel{fig:graph5_latline}{{13}{8}{}{figure.13}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {VII}{\ignorespaces Comprehensive Comparison of Precision Formats and Hardware Trade-Offs}}{8}{}\protected@file@percent }
+\newlabel{tab:precision_tradeoffs}{{VII}{8}{}{table.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Cross-Track Synthesis and Trade-Off Analysis}{8}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {VIII}{\ignorespaces Hardware Execution Profiling and Microarchitectural Latency Breakdown}}{9}{}\protected@file@percent }
+\newlabel{tab:hardware_profiling}{{VIII}{9}{}{table.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces Graph 6: Compression versus accuracy trade-off (size reduction \% vs. absolute accuracy drop pp). INT8 dominates the lower-right Pareto frontier.}}{9}{}\protected@file@percent }
+\newlabel{fig:graph6_tradeoff}{{14}{9}{}{figure.14}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-D}}Interactive Demonstration Dashboard: Gradio Web UI (Step 13)}{9}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-E}}Automated Synthesis and Academic Artifact Pipeline (Step 14)}{9}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VI}Discussion}{9}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-A}}The Illusion of Classification Robustness}{9}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-B}}Guidelines for Edge AI Deployment}{9}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VII}Limitations and Threats to Validity}{9}{}\protected@file@percent }
+\bibstyle{IEEEtran}
+\bibdata{references}
+\bibcite{devlin2018bert}{1}
+\bibcite{sanh2019distilbert}{2}
+\bibcite{han2015learning}{3}
+\bibcite{han2016deep}{4}
+\bibcite{frankle2018lottery}{5}
+\bibcite{jacob2018quantization}{6}
+\bibcite{nagel2021white}{7}
+\bibcite{dettmers2022llm}{8}
+\bibcite{wang2018glue}{9}
+\bibcite{hooker2019compressed}{10}
+\bibcite{hooker2020hardware}{11}
+\bibcite{gordon2020compressing}{12}
+\bibcite{chen2020lottery}{13}
+\bibcite{michel2019sixteen}{14}
+\bibcite{voita2019analyzing}{15}
+\bibcite{zafrir2019q8bert}{16}
+\bibcite{bhandare2019efficient}{17}
+\bibcite{frantar2022gptq}{18}
+\bibcite{lin2023awq}{19}
+\bibcite{hinton2015distilling}{20}
+\bibcite{jiao2019tinybert}{21}
+\bibcite{wang2020minilm}{22}
+\bibcite{socher2013recursive}{23}
+\@writefile{toc}{\contentsline {section}{\numberline {VIII}Conclusion and Future Work}{10}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{References}{10}{}\protected@file@percent }
+\gdef \@abspage@last{10}

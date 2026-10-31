@@ -1,0 +1,43 @@
+regime,sparsity_target_pct,measured_sparsity_pct,top1_pct,top5_pct,embedding_cosine,latency_median_ms,latency_p95_ms,size_mb,quantization,seed,provenance
+Dense baseline,0.0,0.0,37.50,75.00,1.0000,170.33,204.37,255.57,FP32,42,"Step 0 verified benchmark (100 runs, 20 warm-up, 1 CPU thread)"
+Dense baseline,0.0,0.0,37.50,75.00,1.0000,MISSING,MISSING,127.80,FP16,42,Step 0 verified run
+Dense baseline,0.0,0.0,43.75,50.00,0.9450,95.03,113.19,154.76,Dynamic INT8,42,Step 0 verified benchmark
+Dense baseline,0.0,0.0,18.75,75.00,0.9228,MISSING,MISSING,31.94 (theoretical MiB),Simulated INT4,42,Step 0 verified run (fake quantization)
+Global L1 30%,30.0,30.0,25.00,37.50,0.9109,MISSING,MISSING,31.94 (theoretical MiB),Simulated INT4,42,Step 0 verified run
+Global L1 45% (Pre-Distill),45.0,45.0,12.50,12.50,0.7791,170.87,187.91,255.57,FP32,42,Step 0 pre-distillation measurement
+Global L1 45% + Distillation,45.0,45.0,18.75,37.50,0.8773,MISSING,MISSING,255.57,FP32,42,"Step 0 verified distillation run (3 epochs, logit KL)"
+Local L1,15.0,15.0,43.75,75.00,0.9903,205.44,MISSING,255.57,FP32,42,notebook cell 8 output
+Local L1,30.0,30.0,25.00,62.50,0.9585,134.77,MISSING,255.57,FP32,42,notebook cell 8 output
+Local L1,45.0,45.0,12.50,12.50,0.8325,136.77,MISSING,255.57,FP32,42,notebook cell 8 output
+Local L1,60.0,60.0,0.00,0.00,0.4970,136.49,MISSING,255.57,FP32,42,notebook cell 8 output
+Local L1,75.0,75.0,0.00,0.00,0.4070,135.66,MISSING,255.57,FP32,42,notebook cell 8 output
+Local L1,15.0,15.0,50.00,75.00,0.9370,121.99,MISSING,154.77,Dynamic INT8,42,notebook cell 8 output
+Local L1,30.0,30.0,18.75,37.50,0.9213,78.33,MISSING,154.77,Dynamic INT8,42,notebook cell 8 output
+Local L1,45.0,45.0,0.00,18.75,0.8221,77.84,MISSING,154.77,Dynamic INT8,42,notebook cell 8 output
+Local L1,60.0,60.0,0.00,0.00,0.4634,79.26,MISSING,154.77,Dynamic INT8,42,notebook cell 8 output
+Local L1,75.0,75.0,0.00,0.00,0.3861,78.13,MISSING,154.77,Dynamic INT8,42,notebook cell 8 output
+Global L1,15.0,15.0,43.75,75.00,0.9882,136.07,MISSING,255.57,FP32,42,notebook cell 8 output
+Global L1,30.0,30.0,25.00,75.00,0.9464,135.77,MISSING,255.57,FP32,42,notebook cell 8 output
+Global L1,45.0,45.0,12.50,12.50,0.7791,133.59,MISSING,255.57,FP32,42,notebook cell 8 output
+Global L1,60.0,60.0,0.00,0.00,0.5212,133.88,MISSING,255.57,FP32,42,notebook cell 8 output
+Global L1,75.0,75.0,0.00,0.00,0.4467,133.60,MISSING,255.57,FP32,42,notebook cell 8 output
+Global L1,15.0,15.0,43.75,75.00,0.9366,78.86,MISSING,154.77,Dynamic INT8,42,notebook cell 8 output
+Global L1,30.0,30.0,12.50,37.50,0.9122,78.06,MISSING,154.77,Dynamic INT8,42,notebook cell 8 output
+Global L1,45.0,45.0,0.00,18.75,0.7804,76.15,MISSING,154.77,Dynamic INT8,42,notebook cell 8 output
+Global L1,60.0,60.0,0.00,6.25,0.5330,78.35,MISSING,154.77,Dynamic INT8,42,notebook cell 8 output
+Global L1,75.0,75.0,0.00,0.00,0.4485,76.48,MISSING,154.77,Dynamic INT8,42,notebook cell 8 output
+Structured L2 (All-Linear),14.99,14.99,0.00,0.00,0.2642,134.74,MISSING,255.57,FP32,42,notebook cell 8 output
+Structured L2 (All-Linear),29.98,29.98,0.00,0.00,0.3446,132.39,MISSING,255.57,FP32,42,notebook cell 8 output
+Structured L2 (All-Linear),45.02,45.02,0.00,0.00,0.3449,133.67,MISSING,255.57,FP32,42,notebook cell 8 output
+Structured L2 (All-Linear),60.01,60.01,0.00,0.00,0.3989,132.27,MISSING,255.57,FP32,42,notebook cell 8 output
+Structured L2 (All-Linear),75.00,75.00,0.00,0.00,0.4710,131.35,MISSING,255.57,FP32,42,notebook cell 8 output
+Structured L2 (Encoder-Only),15.00,15.00,0.00,0.00,0.4889,MISSING,MISSING,255.57,FP32,42,Step 0 verified run
+Structured L2 (Encoder-Only),30.00,30.00,0.00,0.00,0.4129,MISSING,MISSING,255.57,FP32,42,Step 0 verified run
+Structured L2 (Encoder-Only),45.00,45.00,0.00,0.00,0.4534,MISSING,MISSING,255.57,FP32,42,Step 0 verified run
+Structured L2 (Encoder-Only),60.00,60.00,0.00,6.25,0.4549,MISSING,MISSING,255.57,FP32,42,Step 0 verified run
+Structured L2 (Encoder-Only),75.00,75.00,0.00,0.00,0.4985,MISSING,MISSING,255.57,FP32,42,Step 0 verified run
+Random (3-seed mean),15.0,15.0,18.75,37.50,0.7683,MISSING,MISSING,255.57,FP32,42-44 (mean),Step 0 verified run
+Random (3-seed mean),30.0,30.0,0.00,0.00,0.5542,MISSING,MISSING,255.57,FP32,42-44 (mean),Step 0 verified run
+Random (3-seed mean),45.0,45.0,0.00,0.00,0.5125,MISSING,MISSING,255.57,FP32,42-44 (mean),Step 0 verified run
+Random (3-seed mean),60.0,60.0,0.00,0.00,0.4979,MISSING,MISSING,255.57,FP32,42-44 (mean),Step 0 verified run
+Random (3-seed mean),75.0,75.0,0.00,0.00,0.4751,MISSING,MISSING,255.57,FP32,42-44 (mean),Step 0 verified run

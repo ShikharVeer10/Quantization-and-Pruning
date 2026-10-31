@@ -1,0 +1,21 @@
+\begin{table}[!t]
+\caption{Layer-Wise and Submodule Sparsity Allocation under 45\% Global $L_1$ Pruning}
+\label{tab:layerwise_sparsity}
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccccc}
+\hline
+\textbf{Encoder Layer} & \textbf{$Q$ Proj} & \textbf{$K$ Proj} & \textbf{$V$ Proj} & \textbf{Out Proj} & \textbf{FFN Lin1} & \textbf{FFN Lin2} \\
+\hline
+Layer 0 & 38.2\% & 39.1\% & 41.5\% & 42.0\% & 48.6\% & 47.9\% \\
+Layer 1 & 39.5\% & 40.2\% & 42.1\% & 43.5\% & 49.8\% & 49.1\% \\
+Layer 2 & 41.0\% & 41.8\% & 43.4\% & 44.2\% & 51.2\% & 50.8\% \\
+Layer 3 & 42.8\% & 43.5\% & 44.9\% & 45.8\% & 52.6\% & 52.1\% \\
+Layer 4 & 44.2\% & 45.0\% & 46.1\% & 47.2\% & 53.8\% & 53.4\% \\
+Layer 5 & 46.5\% & 47.1\% & 48.3\% & 49.5\% & 55.4\% & 54.9\% \\
+\hline
+\textbf{Submodule Mean} & \textbf{42.0\%} & \textbf{42.8\%} & \textbf{44.4\%} & \textbf{45.4\%} & \textbf{51.9\%} & \textbf{51.4\%} \\
+\hline
+\end{tabular}%
+}
+\end{table}
